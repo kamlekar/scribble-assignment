@@ -14,18 +14,17 @@ export function GuessForm({ disabled = false }: GuessFormProps) {
   return (
     <form className="form" onSubmit={handleSubmit}>
       <label className="form__field">
-        <span>Guess the word</span>
         <input
           className="form__input"
           value={guessText}
           onChange={(event) => setGuessText(event.target.value)}
-          placeholder="Placeholder guess"
+          placeholder="Type your guess here..."
           disabled={disabled}
         />
       </label>
       <div className="button-row button-row--compact">
         <button className="button button--primary" type="submit" disabled={disabled}>
-          Placeholder Submit
+          Submit Guess
         </button>
       </div>
     </form>

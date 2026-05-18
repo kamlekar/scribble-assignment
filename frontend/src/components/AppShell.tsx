@@ -6,9 +6,9 @@ export function AppShell({ children }: PropsWithChildren) {
       <header className="app-shell__header">
         <div>
           <p className="app-shell__eyebrow">Starter Project</p>
-          <p className="app-shell__title">Room Sketch</p>
+          <p className="app-shell__title">Scribble</p>
           <p className="app-shell__lede">
-            A clean TypeScript starter for room flow, lobby setup, and placeholder game areas.
+            A real-time multiplayer drawing and guessing game.
           </p>
         </div>
       </header>

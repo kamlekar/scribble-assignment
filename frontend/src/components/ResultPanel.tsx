@@ -2,10 +2,9 @@ import { Card } from "./Card";
 
 export function ResultPanel() {
   return (
-    <Card title="Results">
-      <p className="placeholder-note">Result area placeholder</p>
-      <div className="placeholder-block">
-        <p>Winning word, final score, and guess history appear here in later phases.</p>
+    <Card title="Activity">
+      <div className="placeholder-block" style={{ backgroundColor: '#f9fafb' }}>
+        <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>Game activity and guesses will appear here.</p>
       </div>
     </Card>
   );

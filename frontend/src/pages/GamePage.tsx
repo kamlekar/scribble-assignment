@@ -27,51 +27,49 @@ export function GamePage() {
     <section className="panel game-page">
       <div className="game-page__header">
         <div className="game-page__header-left">
-          <span className="section-kicker">Now playing</span>
-          <h1 className="game-page__title">Game Scaffold</h1>
+          <span className="section-kicker">Round 1</span>
+          <h1 className="game-page__title">Guess the Word!</h1>
         </div>
         <RoomCodeBadge code={room.code} />
       </div>
 
       <div className="game-page__layout">
+        <aside className="game-page__sidebar game-page__sidebar--left">
+          <Scoreboard />
+          <ResultPanel />
+        </aside>
+
         <div className="game-page__main">
           <Card title="Canvas">
-            <div className="canvas-placeholder">Drawing canvas placeholder</div>
-            <p>The canvas region is intentionally non-interactive in this starter.</p>
-          </Card>
-
-          <Card title="Guess Input">
-            <p>This input is a placeholder and does not submit gameplay guesses.</p>
-            <GuessForm />
+            <div className="canvas-placeholder" style={{ minHeight: '500px', backgroundColor: '#ffffff', border: '1px solid #e5e7eb' }}>
+              Waiting for drawer...
+            </div>
           </Card>
         </div>
 
-        <aside className="game-page__sidebar">
-          <Card title="Session">
+        <aside className="game-page__sidebar game-page__sidebar--right">
+          <Card title="Player Info">
             <dl className="detail-list">
               <div>
-                <dt>Viewer</dt>
+                <dt>Name</dt>
                 <dd>{viewer?.name ?? "Unknown player"}</dd>
               </div>
               <div>
-                <dt>Roles</dt>
-                <dd>{room.roles.join(", ")}</dd>
-              </div>
-              <div>
-                <dt>Words</dt>
-                <dd>{room.availableWords.join(", ")}</dd>
+                <dt>Status</dt>
+                <dd>Playing</dd>
               </div>
             </dl>
           </Card>
 
-          <Scoreboard />
-          <ResultPanel />
+          <Card title="Your Guess">
+            <GuessForm />
+          </Card>
         </aside>
       </div>
 
       <div className="button-row">
         <button className="button button--secondary" onClick={() => navigate("/lobby")}>
-          Back to Lobby
+          Exit Game
         </button>
       </div>
     </section>

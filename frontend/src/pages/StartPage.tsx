@@ -2,75 +2,37 @@ import { Link } from "react-router-dom";
 import { Card } from "../components/Card";
 import { PageHeader } from "../components/PageHeader";
 
-const starterWords = ["rocket", "pizza", "castle", "guitar", "sunflower"];
-
-const starterSummary = [
-  { label: "Frontend screens", value: "5" },
-  { label: "REST endpoints", value: "3" },
-  { label: "Seed words", value: String(starterWords.length) },
-  { label: "Next learner phases", value: "4" }
-] as const;
-
 export function StartPage() {
   return (
     <section className="panel hero">
-      <div className="start-hero">
-        <div className="start-hero__content">
-          <PageHeader
-            kicker="Clean clone ready"
-            title="Room flow starter for the drawing game lab"
-            description="Use this scaffold to create or join a room, inspect the lobby state, and hand the project to learners for the required gameplay phases."
-          />
+      <div className="start-hero__content" style={{ paddingBottom: '16px' }}>
+        <PageHeader
+          kicker="Play Now"
+          title="Scribble Game"
+          description="Create a new room to play with friends or join an existing game using a room code. Take turns drawing and guessing words in real-time."
+        />
 
-          <div className="button-row button-row--hero">
-            <Link className="button button--primary" to="/create-room">
-              Create Room
-            </Link>
-            <Link className="button button--secondary" to="/join-room">
-              Join Room
-            </Link>
-          </div>
-
-          <div className="start-hero__meta">
-            <div className="start-hero__meta-item">
-              <strong>Current scope</strong>
-              <span>Room creation, join flow, lobby snapshot, and game placeholders</span>
-            </div>
-            <div className="start-hero__meta-item">
-              <strong>Future work</strong>
-              <span>Host controls, gameplay rules, scoring, and restart flow</span>
-            </div>
-          </div>
+        <div className="button-row button-row--hero">
+          <Link className="button button--primary" to="/create-room">
+            Create Room
+          </Link>
+          <Link className="button button--secondary" to="/join-room">
+            Join Room
+          </Link>
         </div>
-
-        <aside className="start-summary">
-          <span className="start-summary__label">Starter snapshot</span>
-          {starterSummary.map((item) => (
-            <div className="start-summary__row" key={item.label}>
-              <span>{item.label}</span>
-              <strong>{item.value}</strong>
-            </div>
-          ))}
-        </aside>
       </div>
 
-      <div className="hero__grid">
-        <Card title="Starter words" badge="01">
-          <ul className="pill-list">
-            {starterWords.map((word) => (
-              <li className="pill" key={word}>
-                {word}
-              </li>
-            ))}
-          </ul>
+      <div className="hero__grid" style={{ marginTop: '16px' }}>
+        <Card title="Draw" badge="Step 1">
+          <p>Get a word and sketch it out on the canvas. No artistic skills required!</p>
         </Card>
 
-        <Card title="Flow" badge="02">
-          <p>Start, create or join, lobby review, and game scaffold inspection.</p>
+        <Card title="Guess" badge="Step 2">
+          <p>Type your guesses as fast as you can when other players are drawing.</p>
         </Card>
 
-        <Card title="Roles" badge="03">
-          <p>Starter data includes drawer and guesser labels for later gameplay implementation.</p>
+        <Card title="Win" badge="Step 3">
+          <p>Score the most points across all rounds to be crowned the winner.</p>
         </Card>
       </div>
     </section>

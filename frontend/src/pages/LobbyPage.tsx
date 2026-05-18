@@ -58,8 +58,10 @@ export function LobbyPage() {
         </Card>
 
         <Card title="Status">
-          <p className="status-line">{isLoading ? "Refreshing room state..." : "Room endpoint connected"}</p>
-          <p>{error ?? refreshError ?? "Game behavior remains scaffolded in this starter."}</p>
+          <p className="status-line" style={{ backgroundColor: isLoading ? '#fef3c7' : '#e0e7ff', color: isLoading ? '#b45309' : '#3730a3' }}>
+            {isLoading ? "Refreshing players..." : "Ready to play"}
+          </p>
+          <p style={{ marginTop: '8px' }}>{error ?? refreshError ?? "Waiting for the host to start the game."}</p>
         </Card>
       </div>
 
@@ -68,7 +70,7 @@ export function LobbyPage() {
           {isLoading ? "Refreshing..." : "Refresh Room"}
         </button>
         <button className="button button--primary" onClick={() => navigate("/game")}>
-          Open Game Scaffold
+          Start Game
         </button>
       </div>
     </section>
