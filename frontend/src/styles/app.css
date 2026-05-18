@@ -79,17 +79,17 @@ input {
   display: inline-flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  padding: 16px 28px;
+  gap: 4px;
+  padding: 12px 24px;
   border: 2px solid rgba(47, 117, 111, 0.2);
-  border-radius: 20px;
+  border-radius: 16px;
   background: linear-gradient(135deg, #edf7f3 0%, #f0faf6 100%);
   text-align: center;
 }
 
 .room-code-badge__label {
   color: var(--brand);
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-weight: 800;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -97,16 +97,16 @@ input {
 
 .room-code-badge__code {
   color: var(--brand-strong);
-  font-size: 2rem;
+  font-size: 1.6rem;
   font-weight: 900;
-  letter-spacing: 0.25em;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
   font-family: "SF Mono", "Fira Code", "JetBrains Mono", monospace;
 }
 
 .room-code-badge__hint {
   color: var(--ink-soft);
-  font-size: 0.8rem;
+  font-size: 0.72rem;
   font-weight: 500;
 }
 
@@ -515,6 +515,56 @@ input {
   color: #78908b;
   font-weight: 800;
   text-align: center;
+}
+
+.game-page {
+  display: grid;
+  gap: 24px;
+  padding: 34px;
+}
+
+.game-page__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.game-page__header-left {
+  display: grid;
+  gap: 6px;
+}
+
+.game-page__title {
+  margin: 0;
+  color: var(--ink);
+  font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.game-page__layout {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.game-page__main {
+  display: grid;
+  gap: 20px;
+}
+
+.game-page__sidebar {
+  display: grid;
+  gap: 16px;
+}
+
+@media (max-width: 860px) {
+  .game-page__layout {
+    grid-template-columns: 1fr;
+  }
 }
 
 .detail-list {
