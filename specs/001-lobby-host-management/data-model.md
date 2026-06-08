@@ -72,6 +72,7 @@ Host Transitions:
 | Room must not be in "playing" state for join | Backend | Check `room.status === "lobby"` before join |
 | Only host can start game | Backend | Verify `participantId === room.hostId` |
 | Need at least 2 players to start | Backend | `room.participants.length >= 2` |
+| Concurrency: requests atomic via Zod | Backend | Validate input before mutating room state — no partial writes |
 
 ## Existing Types Not Modified
 

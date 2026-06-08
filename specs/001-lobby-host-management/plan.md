@@ -84,3 +84,26 @@ frontend/
 ## Complexity Tracking
 
 No constitutional violations to justify. All changes are additive and within the existing architectural boundaries.
+
+### Key Dependencies
+
+| Dependency | Scope | Notes |
+|------------|-------|-------|
+| `structuredClone` | Backend (roomStore) | Used for snapshot derivation in `toRoomSnapshot`; must not mutate live room state |
+| `Zod` validation | Backend + Frontend | Runs before any room state mutation to prevent partial corruption under concurrent requests |
+
+### Server Lifecycle
+
+- **Startup**: Room store initialises as empty `Map`. No persistence across restarts.
+- **Shutdown**: All in-memory state is lost. Clients detect this on next poll (HTTP 404) and are redirected to the join page per FR-021.
+- **Constitution IV compliance**: No database dependency. State is ephemeral by design. No cleanup/shutdown hooks required.
+
+### Polling Load Assessment
+
+| Factor | Estimate | Notes |
+|--------|----------|-------|
+| Target scale | ~100 rooms × ~400 participants | Per Plan §Scale/Scope |
+| Poll interval | 2s (1.5–2.5s tolerance) | Per FR-007 |
+| Polls/second at scale | 100 rooms × 0.5 Hz = 50 req/s | GET /rooms/:code is a lightweight in-memory lookup |
+| Expected CPU impact | Negligible (< 1% per core) | No DB queries, no I/O blocks; key lookup in `Map` |
+| Network bandwidth | ~400 bytes per response × 50 req/s ≈ 20 KB/s | Trivial for a single Node.js process |

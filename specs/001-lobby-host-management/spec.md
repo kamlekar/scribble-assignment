@@ -15,6 +15,15 @@
 - Q: What happens when the host leaves the room? → A: Host role passes to the next player who joined earliest
 - Q: Should duplicate player names be allowed? → A: Yes, duplicate names are allowed — no uniqueness enforcement
 
+### Session 2026-06-09
+
+- Q: Where should inline error messages appear on the join/create form? → A: Directly below the relevant input field, in red text (12px, #D32F2F). They clear automatically when the user starts typing in that field.
+- Q: Does "at least 2 participants" (FR-010) count the host? → A: Yes, the host counts toward the minimum of 2.
+- Q: How does the manual Refresh button coexist with auto-polling? → A: The manual button does not reset the auto-poll timer. Manual refresh is a one-off immediate fetch; auto-polling continues independently on its schedule.
+- Q: What distinguishes "game view" (US4-4) from the lobby? → A: "Game view" means the room status is now "playing"; the lobby UI is replaced with the game UI (canvas, word display, chat). This is the same transition as "game round begins" (US4-1) — describing the UI consequence rather than the game-logic event.
+- Q: Is the 3-second acceptance criterion (SC-002) compatible with the 2-second polling interval (FR-007)? → A: Yes. Given a tolerance of 1.5–2.5s per FR-007, the worst-case delay from a join event to the next poll is ~2.5s. The 3s bound accounts for network latency and server processing.
+- Q: What happens when the creator's browser is hard-refreshed? → A: The `participantId` is persisted in localStorage. On page load, the lobby reads this ID and resumes polling GET /rooms/:code. If the room is gone (404), the player is redirected to the join page.
+
 ## User Scenarios & Testing
 
 ### User Story 1 - Host Creates and Manages Room (Priority: P1)
@@ -61,8 +70,8 @@ Players in the lobby see new joiners appear automatically without manually click
 **Acceptance Scenarios**:
 
 1. **Given** a player is on the lobby page, **When** another player joins the room, **Then** the participant list updates automatically within 3 seconds
-2. **Given** a player is on the lobby page, **When** the lobby auto-refreshes with no changes, **Then** the player's view remains stable with no visual flicker
-3. **Given** a player is on the lobby page, **When** the network is temporarily unavailable during a refresh, **Then** the player sees a subtle loading indicator and the last known state is preserved
+2. **Given** a player is on the lobby page, **When** the lobby auto-refreshes with no changes, **Then** the player's view remains stable with no visual flicker — the DOM must not cause layout shift (cumulative layout shift score 0), and the participant list must not re-render if the data is identical
+3. **Given** a player is on the lobby page, **When** the network is temporarily unavailable during a refresh, **Then** the player sees a subtle loading indicator and the last known state is preserved — the participant list, room code, host identity, and start button state all remain visible with their pre-fetch values; only the loading indicator distinguishes the stale state
 
 ---
 
@@ -101,12 +110,21 @@ Only the host can start the game, and only when at least 2 players are present.
 - **FR-004**: System MUST trim leading and trailing whitespace from player names before acceptance
 - **FR-005**: System MUST reject join attempts for non-existent room codes with a clear error message
 - **FR-006**: System MUST reject join attempts for rooms where a game is in progress
-- **FR-007**: System MUST auto-refresh lobby state on the frontend at approximately 2-second intervals
-- **FR-008**: System MUST show a subtle loading state during lobby refresh without full page flicker
+- **FR-007**: System MUST auto-refresh lobby state on the frontend at approximately 2-second intervals (tolerance: 1.5–2.5s)
+- **FR-008**: System MUST show a subtle loading state during lobby refresh without full page flicker. The loading indicator MUST be positioned above the participant list, use a thin animated bar (< 4px height, colour #E0E0E0, fade-in/out 300ms), and MUST NOT cause layout shift (reserve space before appear).
 - **FR-009**: System MUST limit the "Start Game" button to the host only — non-host players must not see or have access to this control
-- **FR-010**: System MUST require at least 2 participants before the host can start the game
+- **FR-010**: System MUST require at least 2 participants (including the host) before the host can start the game
 - **FR-011**: System MUST show the start button as disabled with a reason when fewer than 2 players are present
 - **FR-012**: System MUST enforce a maximum player name length of 30 characters
+- **FR-013**: System MUST implement polling with exponential backoff on network errors: retry after 1s, then 2s, then 4s, max 3 retries before showing a persistent "Connection lost" banner
+- **FR-014**: System MUST detect room deletion during polling (HTTP 404) and redirect the player to the join page with a "Room no longer exists" message
+- **FR-015**: System MUST debounce the "Start Game" button client-side (1s cooldown) and MUST reject duplicate start requests server-side by checking room status before processing
+- **FR-016**: System MUST preserve the participant's session (`participantId` in localStorage) so that navigating away and returning restores the lobby state without requiring re-join
+- **FR-017**: System MUST restore lobby state on hard refresh by reading `participantId` from localStorage and re-polling GET /rooms/:code; if the room no longer exists, redirect to join page
+- **FR-018**: System MUST display a scalable participant list that remains usable at 50+ participants (virtualised list or capped height with scroll, each entry ≤ 40px height)
+- **FR-019**: System MUST recover from polling network timeouts (no response after 5s) by showing the last known state with a stale-data indicator (amber badge: "Updates paused") and resuming on next successful poll
+- **FR-020**: System MUST process server requests (join, start, create) atomically using Zod validation before mutating room state, preventing partial state corruption under concurrent requests
+- **FR-021**: System MUST handle server restart gracefully: in-memory room state is lost, all active clients receive a 404 on next poll and are redirected to the join page
 
 ### Key Entities
 
@@ -118,8 +136,8 @@ Only the host can start the game, and only when at least 2 players are present.
 
 ### Measurable Outcomes
 
-- **SC-001**: Players can create a room and see themselves as host within 2 seconds of creation
-- **SC-002**: Joiners appear in the host's lobby within 3 seconds of submitting their join request
+- **SC-001**: Players can create a room and see themselves as host within 2 seconds of creation (measured end-to-end: from POST /rooms response received to participant.isHost === true confirmed via GET /rooms/:code)
+- **SC-002**: Joiners appear in the host's lobby within 3 seconds of submitting their join request (consistent with FR-007 2s interval — the joiner's data will appear on the next poll cycle, bounded by the 1.5–2.5s tolerance)
 - **SC-003**: Players who submit invalid names or room codes receive clear error feedback without a page reload
 - **SC-004**: The start game flow from host click to lobby transition completes within 2 seconds
 - **SC-005**: Non-host players never see or interact with a start game control
@@ -131,3 +149,4 @@ Only the host can start the game, and only when at least 2 players are present.
 - Error messages are client-side validated where possible before submitting to server
 - The existing "Refresh" button on the lobby page can remain as a fallback for manual refresh
 - Players are expected to have stable internet connectivity for the polling to work effectively
+- The in-memory room store is ephemeral: server restart clears all state; clients detect this via 404 and redirect

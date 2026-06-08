@@ -40,19 +40,21 @@ Creates a new room and designates the creator as host.
 }
 ```
 
-**Error Responses** (400):
+**Error Responses:**
+
+All error responses use a structured format:
 
 ```json
 {
-  "error": "Name must be 30 characters or less"
+  "error": "Human-readable message",
+  "code": "MACHINE_READABLE_CODE"
 }
 ```
 
-```json
-{
-  "error": "Name is required"
-}
-```
+| HTTP Status | `code` | `error` |
+|-------------|--------|---------|
+| 400 | `NAME_TOO_LONG` | "Name must be 30 characters or less" |
+| 400 | `NAME_REQUIRED` | "Name is required" |
 
 **Zod Schema** (updated):
 
@@ -102,19 +104,13 @@ Joins an existing room. Rejected if room is in `"playing"` state.
 }
 ```
 
-**Error Responses** (400/404):
+**Error Responses:**
 
-```json
-{ "error": "Room not found" }
-```
-
-```json
-{ "error": "Game already in progress" }
-```
-
-```json
-{ "error": "Name is required" }
-```
+| HTTP Status | `code` | `error` |
+|-------------|--------|---------|
+| 404 | `ROOM_NOT_FOUND` | "Room not found" |
+| 400 | `GAME_IN_PROGRESS` | "Game already in progress" |
+| 400 | `NAME_REQUIRED` | "Name is required" |
 
 ---
 
@@ -148,9 +144,9 @@ Fetches current room state (polling endpoint).
 
 **Error** (404):
 
-```json
-{ "error": "Room not found" }
-```
+| HTTP Status | `code` | `error` |
+|-------------|--------|---------|
+| 404 | `ROOM_NOT_FOUND` | "Room not found" |
 
 ---
 
@@ -192,20 +188,11 @@ Host-only. Starts the game if at least 2 participants. Sets `status` to `"playin
 
 > **Note**: `availableWords` and `roles` in the response are frontend convenience fields and will be populated by the start-game logic.
 
-**Error Responses** (400/403):
+**Error Responses:**
 
-```json
-{ "error": "Room not found" }
-```
-
-```json
-{ "error": "Only the host can start the game" }
-```
-
-```json
-{ "error": "At least 2 players are required to start" }
-```
-
-```json
-{ "error": "Game already in progress" }
-```
+| HTTP Status | `code` | `error` |
+|-------------|--------|---------|
+| 404 | `ROOM_NOT_FOUND` | "Room not found" |
+| 403 | `NOT_HOST` | "Only the host can start the game" |
+| 400 | `NOT_ENOUGH_PLAYERS` | "At least 2 players are required to start" |
+| 400 | `GAME_IN_PROGRESS` | "Game already in progress" |
