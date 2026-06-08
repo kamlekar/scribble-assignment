@@ -85,7 +85,7 @@ Only the host can start the game, and only when at least 2 players are present.
 
 ### Edge Cases
 
-- What happens if the host leaves the room? The host role passes to the next player who joined earliest, keeping the game alive
+- What happens if the host leaves the room? [v2 scope] The host role passes to the next player who joined earliest, keeping the game alive
 - What happens if all players leave the room? The room should be cleaned up after all participants depart
 - What happens when a player submits very long names (e.g., 100+ characters)? Names should be truncated to a reasonable maximum length
 - What happens if a player tries to join a room that has already started a game? The join should be rejected with an appropriate message
@@ -110,7 +110,7 @@ Only the host can start the game, and only when at least 2 players are present.
 
 ### Key Entities
 
-- **Participant**: Represents a player in a room. Has an id, name (trimmed and validated), and an `isHost` flag.
+- **Participant**: Represents a player in a room. Has an id, name (trimmed and validated). Host status is derived at snapshot time via room hostId.
 - **Room**: Represents a game room. Has a unique code, status (lobby/playing/finished), participant list, host reference, creation timestamp.
 - **LobbySnapshot**: A view of the room presented to players in the lobby. Contains room code, host identity, participant list with names and host indicator, room status.
 

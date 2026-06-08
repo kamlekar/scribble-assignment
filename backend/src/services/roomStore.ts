@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
-import type { Participant, Room, RoomSnapshot } from "../models/game.js";
+import type { Participant, ParticipantSnapshot, Room, RoomSnapshot } from "../models/game.js";
 import { STARTER_ROLES, STARTER_WORDS } from "../seed/starterData.js";
+import { HttpError } from "../api/schemas.js";
 
 const rooms = new Map<string, Room>();
 
@@ -53,6 +54,7 @@ export function createRoom(playerName?: string) {
   const participant = createParticipant(playerName);
   const room: Room = {
     code: generateUniqueCode(),
+    hostId: participant.id,
     status: "lobby",
     participants: [participant],
     createdAt: now(),
@@ -67,11 +69,17 @@ export function createRoom(playerName?: string) {
   };
 }
 
+export type JoinRoomError = "not_found" | "game_in_progress";
+
 export function joinRoom(code: string, playerName?: string) {
   const room = rooms.get(code);
 
   if (!room) {
-    return null;
+    return { error: "not_found" as const };
+  }
+
+  if (room.status !== "lobby") {
+    return { error: "game_in_progress" as const };
   }
 
   const participant = createParticipant(playerName);
@@ -96,13 +104,47 @@ export function saveRoom(room: Room) {
   return getRoom(room.code);
 }
 
+export function startGame(code: string, participantId: string) {
+  const room = rooms.get(code);
+
+  if (!room) {
+    throw new HttpError(404, "Room not found");
+  }
+
+  if (room.hostId !== participantId) {
+    throw new HttpError(403, "Only the host can start the game");
+  }
+
+  if (room.status !== "lobby") {
+    throw new HttpError(400, "Game already in progress");
+  }
+
+  if (room.participants.length < 2) {
+    throw new HttpError(400, "At least 2 players are required to start");
+  }
+
+  room.status = "playing";
+  room.word = STARTER_WORDS[Math.floor(Math.random() * STARTER_WORDS.length)];
+  room.updatedAt = now();
+  rooms.set(room.code, room);
+
+  return cloneRoom(room);
+}
+
 export function toRoomSnapshot(room: Room, viewerParticipantId?: string): RoomSnapshot {
   void viewerParticipantId;
 
   return {
     code: room.code,
     status: room.status,
-    participants: room.participants.map((participant) => ({ ...participant })),
+    hostId: room.hostId,
+    participants: room.participants.map((participant) => ({
+      id: participant.id,
+      name: participant.name,
+      joinedAt: participant.joinedAt,
+      isHost: participant.id === room.hostId,
+      role: null
+    })) satisfies ParticipantSnapshot[],
     availableWords: listWords(),
     roles: [...STARTER_ROLES]
   };

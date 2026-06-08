@@ -61,7 +61,7 @@ specs/001-lobby-host-management/
 ```text
 backend/
 ├── src/
-│   ├── models/game.ts           # Add isHost to Participant, hostId to Room, RoomStatus "playing"
+│   ├── models/game.ts           # Add hostId to Room, RoomStatus "playing", ParticipantSnapshot type
 │   ├── services/roomStore.ts    # Host assignment on create, validation, host transfer, room cleanup
 │   └── api/rooms.ts             # Add POST /rooms/:code/start endpoint
 │   └── api/schemas.ts           # Update/create Zod schemas for name validation, start game
