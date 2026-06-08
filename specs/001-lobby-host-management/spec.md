@@ -8,6 +8,13 @@
 
 **Input**: User description: "Create lobby management with host tracking, player validation, lobby polling, and host-only game start"
 
+## Clarifications
+
+### Session 2026-06-08
+
+- Q: What happens when the host leaves the room? → A: Host role passes to the next player who joined earliest
+- Q: Should duplicate player names be allowed? → A: Yes, duplicate names are allowed — no uniqueness enforcement
+
 ## User Scenarios & Testing
 
 ### User Story 1 - Host Creates and Manages Room (Priority: P1)
@@ -78,10 +85,11 @@ Only the host can start the game, and only when at least 2 players are present.
 
 ### Edge Cases
 
-- What happens if the host leaves the room? (The host role stays with the original host or passes to the next player — consistent behaviour needs to be defined)
+- What happens if the host leaves the room? The host role passes to the next player who joined earliest, keeping the game alive
 - What happens if all players leave the room? The room should be cleaned up after all participants depart
 - What happens when a player submits very long names (e.g., 100+ characters)? Names should be truncated to a reasonable maximum length
 - What happens if a player tries to join a room that has already started a game? The join should be rejected with an appropriate message
+- What happens if two players join with the same name? Duplicate names are allowed — participants are distinguished by their unique participant ID, not by name
 
 ## Requirements
 
