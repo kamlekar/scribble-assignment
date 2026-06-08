@@ -42,7 +42,7 @@ You are working on a monolithic repository for a multiplayer drawing game ("Scri
 -   When creating or editing files, ensure consistency with the existing directory structure detailed above.
 
 <!-- SPECKIT START -->
-For additional context, read the implementation plan at `specs/001-lobby-host-management/plan.md`,
-the data model at `specs/001-lobby-host-management/data-model.md`,
-and the API contracts at `specs/001-lobby-host-management/contracts/api.md`.
+For additional context, read the implementation plan at `specs/002-game-rounds/plan.md`,
+the data model at `specs/002-game-rounds/data-model.md`,
+and the API contracts at `specs/002-game-rounds/contracts/api.md`.
 <!-- SPECKIT END -->

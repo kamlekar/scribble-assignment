@@ -60,9 +60,10 @@ The room moves through clear states: from lobby to playing (drawing phase), and 
 
 ### Edge Cases
 
-- What happens if the drawer disconnects during a round? The round should be ended gracefully, and players notified
+- What happens if the drawer disconnects during a round? The round is ended gracefully: the room transitions to "finished" status, and remaining players see a "Drawer disconnected" message
 - What happens if only 1 player remains when the game starts? The host should not be able to start with fewer than 2 players (handled by lobby spec)
 - What happens if the available words list is empty? The game should not start if no words are available
+- What happens if a guesser disconnects during a round? The game continues normally — only drawer disconnection triggers round end
 
 ## Requirements
 
@@ -79,7 +80,7 @@ The room moves through clear states: from lobby to playing (drawing phase), and 
 - **FR-009**: System MUST reject join attempts for rooms with status playing or finished
 - **FR-010**: System MUST persist the secret word for the duration of the round
 - **FR-011**: System MUST inform participants of the drawer's identity
-- **FR-012**: System MUST select the secret word deterministically from the starter word list
+- **FR-012**: System MUST select the secret word from the starter word list (the list is a fixed, deterministic set of candidate words; selection may be random)
 
 ### Key Entities
 
@@ -104,3 +105,13 @@ The room moves through clear states: from lobby to playing (drawing phase), and 
 - The drawer assignment and word selection happen atomically when the game starts
 - Players are expected to behave honestly — no technical measures to prevent guessers from seeing the drawer's screen (physical world constraint)
 - Only one round is supported for v1 (multi-round and drawer rotation are explicitly out of scope per project constraints)
+
+## Clarifications
+
+### Session 2026-06-08
+
+- **Q**: What happens when the drawer disconnects during a round? → **A**: Gracefully end the round — auto-transition room to `"finished"`, show "Drawer disconnected" message to all remaining players
+- **Q**: Where should the secret word be displayed to the drawer? → **A**: Banner above the canvas area
+- **Q**: What should guessers see in the canvas area during the round? → **A**: "Drawer is drawing..." placeholder message
+- **Q**: Does FR-012 require deterministic (predictable/reproducible) word selection, or does "deterministically" refer to the fixed source list? → **A**: Refers to the fixed source list; selection may be random (keep `Math.random()`)
+- **Q**: What happens when a guesser disconnects during a round? → **A**: Game continues normally — only drawer disconnection triggers round end
