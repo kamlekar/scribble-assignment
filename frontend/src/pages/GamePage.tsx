@@ -1,15 +1,17 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "../components/Card";
 import { GuessForm } from "../components/GuessForm";
 import { ResultPanel } from "../components/ResultPanel";
 import { RoomCodeBadge } from "../components/RoomCodeBadge";
 import { Scoreboard } from "../components/Scoreboard";
-import { useRoomState } from "../state/roomStore";
+import { useRoomState, useRoomStore } from "../state/roomStore";
 
 export function GamePage() {
   const navigate = useNavigate();
+  const roomStore = useRoomStore();
   const { room, participantId } = useRoomState();
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     if (!room) {
@@ -17,11 +19,32 @@ export function GamePage() {
     }
   }, [navigate, room]);
 
+  useEffect(() => {
+    if (!room) {
+      return;
+    }
+
+    pollingRef.current = setInterval(() => {
+      roomStore.pollRoom();
+    }, 2000);
+
+    return () => {
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+        pollingRef.current = null;
+      }
+      roomStore.clearPolling();
+    };
+  }, [roomStore, room?.code]);
+
   if (!room) {
     return null;
   }
 
   const viewer = room.participants.find((participant) => participant.id === participantId) ?? null;
+  const drawer = room.participants.find((participant) => participant.role === "drawer") ?? null;
+  const isDrawer = viewer?.role === "drawer";
+  const isFinished = room.status === "finished";
 
   return (
     <section className="panel game-page">
@@ -40,11 +63,19 @@ export function GamePage() {
         </aside>
 
         <div className="game-page__main">
-          <Card title="Canvas">
-            <div className="canvas-placeholder" style={{ minHeight: '500px', backgroundColor: '#ffffff', border: '1px solid #e5e7eb' }}>
-              Waiting for drawer...
-            </div>
-          </Card>
+          {isDrawer && room.word ? (
+            <Card title="Your Word">
+              <div className="word-banner">{room.word}</div>
+            </Card>
+          ) : null}
+
+          {!isDrawer ? (
+            <Card title="Canvas">
+              <div className="canvas-placeholder" style={{ minHeight: '500px', backgroundColor: '#ffffff', border: '1px solid #e5e7eb' }}>
+                Drawer is drawing...
+              </div>
+            </Card>
+          ) : null}
         </div>
 
         <aside className="game-page__sidebar game-page__sidebar--right">
@@ -55,8 +86,22 @@ export function GamePage() {
                 <dd>{viewer?.name ?? "Unknown player"}</dd>
               </div>
               <div>
+                <dt>Role</dt>
+                <dd>{viewer?.role === "drawer" ? "Drawer" : "Guesser"}</dd>
+              </div>
+              <div>
+                <dt>Drawer</dt>
+                <dd>{drawer?.name ?? "Unknown"}</dd>
+              </div>
+              <div>
                 <dt>Status</dt>
-                <dd>Playing</dd>
+                <dd>
+                  {isFinished
+                    ? "Drawer disconnected"
+                    : room.status === "playing"
+                      ? "Game in Progress"
+                      : "Waiting"}
+                </dd>
               </div>
             </dl>
           </Card>
@@ -68,7 +113,7 @@ export function GamePage() {
       </div>
 
       <div className="button-row">
-        <button className="button button--secondary" onClick={() => navigate("/lobby")}>
+        <button className="button button--secondary" onClick={async () => { await roomStore.leaveRoom(); navigate("/"); }}>
           Exit Game
         </button>
       </div>

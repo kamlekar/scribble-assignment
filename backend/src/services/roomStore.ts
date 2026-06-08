@@ -125,16 +125,53 @@ export function startGame(code: string, participantId: string) {
 
   room.status = "playing";
   room.word = STARTER_WORDS[Math.floor(Math.random() * STARTER_WORDS.length)];
+  for (const participant of room.participants) {
+    participant.role = participant.id === room.hostId ? "drawer" : "guesser";
+  }
   room.updatedAt = now();
   rooms.set(room.code, room);
 
   return cloneRoom(room);
 }
 
-export function toRoomSnapshot(room: Room, viewerParticipantId?: string): RoomSnapshot {
-  void viewerParticipantId;
+export function leaveRoom(code: string, participantId: string) {
+  const room = rooms.get(code);
 
-  return {
+  if (!room) {
+    throw new HttpError(404, "Room not found");
+  }
+
+  const index = room.participants.findIndex((p) => p.id === participantId);
+
+  if (index === -1) {
+    throw new HttpError(404, "Participant not found");
+  }
+
+  const leavingParticipant = room.participants[index];
+
+  if (leavingParticipant.role === "drawer" && room.status === "playing") {
+    room.status = "finished";
+  }
+
+  room.participants.splice(index, 1);
+  room.updatedAt = now();
+
+  if (room.participants.length === 0) {
+    rooms.delete(code);
+    return null;
+  }
+
+  rooms.set(room.code, room);
+  return cloneRoom(room);
+}
+
+export function toRoomSnapshot(room: Room, viewerParticipantId?: string): RoomSnapshot {
+  const isPlayingOrFinished = room.status === "playing" || room.status === "finished";
+
+  const viewer = room.participants.find((p) => p.id === viewerParticipantId);
+  const isViewerDrawer = viewer?.role === "drawer";
+
+  const snapshot: RoomSnapshot = {
     code: room.code,
     status: room.status,
     hostId: room.hostId,
@@ -143,9 +180,15 @@ export function toRoomSnapshot(room: Room, viewerParticipantId?: string): RoomSn
       name: participant.name,
       joinedAt: participant.joinedAt,
       isHost: participant.id === room.hostId,
-      role: null
+      role: isPlayingOrFinished ? (participant.role ?? null) : null
     })) satisfies ParticipantSnapshot[],
     availableWords: listWords(),
     roles: [...STARTER_ROLES]
   };
+
+  if (isViewerDrawer && room.word) {
+    snapshot.word = room.word;
+  }
+
+  return snapshot;
 }

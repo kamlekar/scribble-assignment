@@ -5,6 +5,7 @@ export interface Participant {
   id: string;
   name: string;
   joinedAt: string;
+  role?: ParticipantRole;
 }
 
 export interface ParticipantSnapshot {
@@ -30,6 +31,7 @@ export interface RoomSnapshot {
   status: RoomStatus;
   participants: ParticipantSnapshot[];
   hostId: string;
+  word?: string;
   availableWords: string[];
   roles: ParticipantRole[];
 }

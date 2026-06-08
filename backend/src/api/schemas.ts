@@ -21,6 +21,10 @@ export const roomCodeParamsSchema = z.object({
   code: z.string()
 });
 
+export const leaveRoomSchema = z.object({
+  participantId: z.string()
+});
+
 export const roomViewerQuerySchema = z.object({
   participantId: z.string().optional()
 });

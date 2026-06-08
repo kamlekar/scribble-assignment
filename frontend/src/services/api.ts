@@ -13,6 +13,7 @@ export interface RoomSnapshot {
   status: "lobby" | "playing" | "finished";
   participants: Participant[];
   hostId: string;
+  word?: string;
   availableWords: string[];
   roles: ParticipantRole[];
 }
@@ -63,6 +64,12 @@ export const api = {
   },
   startGame(code: string, participantId: string) {
     return request<{ room: RoomSnapshot }>(`/rooms/${encodeURIComponent(code)}/start`, {
+      method: "POST",
+      body: JSON.stringify({ participantId })
+    });
+  },
+  leaveRoom(code: string, participantId: string) {
+    return request<{ room: RoomSnapshot | null }>(`/rooms/${encodeURIComponent(code)}/leave`, {
       method: "POST",
       body: JSON.stringify({ participantId })
     });

@@ -100,6 +100,14 @@ GET /rooms/:code?participantId=<drawer-uuid>
 
 > Note the absence of `word` in the guesser response.
 
+**Invalid/Missing `participantId`**: If `participantId` is missing or does not match any participant in the room, the `word` field is omitted (treated as guesser-safe). Malformed `participantId` format returns:
+
+```json
+{
+  "error": "INVALID_PARTICIPANT_ID"
+}
+```
+
 **Error** (404): Unchanged from 001.
 
 ---

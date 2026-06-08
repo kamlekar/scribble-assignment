@@ -132,6 +132,24 @@ class RoomStore {
       this.setRoomSnapshot(response.room);
     });
   }
+
+  async leaveRoom() {
+    if (!this.state.room || !this.state.participantId) {
+      return;
+    }
+
+    await this.withLoading(async () => {
+      await api.leaveRoom(this.state.room!.code, this.state.participantId!);
+      this.state = {
+        room: null,
+        participantId: null,
+        error: null,
+        isLoading: false,
+        isPolling: false
+      };
+      this.listeners.forEach((listener) => listener());
+    });
+  }
 }
 
 const RoomStoreContext = createContext<RoomStore | null>(null);

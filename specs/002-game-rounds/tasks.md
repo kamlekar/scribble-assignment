@@ -35,9 +35,9 @@ No setup tasks needed — the repository is already initialized from the 001 imp
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T001 [P] Add role assignment to `startGame` in `backend/src/services/roomStore.ts` — set each participant's role (`"drawer"` for host, `"guesser"` for everyone else) after game starts
-- [ ] T002 [P] Populate `role` field in `toRoomSnapshot` in `backend/src/services/roomStore.ts` — when status is `"playing"` or `"finished"`, set each `ParticipantSnapshot.role` based on the participant's role on the Room
-- [ ] T003 Implement role-based word filtering in `toRoomSnapshot` in `backend/src/services/roomStore.ts` — use `viewerParticipantId` to look up the viewer's role; include `word` in the snapshot only if the viewer is the drawer; omit `word` (set to `undefined`) for guessers and unknown viewers
+- [X] T001 [P] Add role assignment to `startGame` in `backend/src/services/roomStore.ts` — set each participant's role (`"drawer"` for host, `"guesser"` for everyone else) after game starts
+- [X] T002 [P] Populate `role` field in `toRoomSnapshot` in `backend/src/services/roomStore.ts` — when status is `"playing"` or `"finished"`, set each `ParticipantSnapshot.role` based on the participant's role on the Room
+- [X] T003 Implement role-based word filtering in `toRoomSnapshot` in `backend/src/services/roomStore.ts` — use `viewerParticipantId` to look up the viewer's role; include `word` in the snapshot only if the viewer is the drawer; omit `word` (set to `undefined`) for guessers and unknown viewers
 
 **Checkpoint**: Foundation ready — roles are assigned and visible in snapshots, word is hidden from guessers. User story implementation can now begin.
 
@@ -49,9 +49,9 @@ No setup tasks needed — the repository is already initialized from the 001 imp
 
 **Independent Test**: Start a game with 2+ players. Verify the host sees "Drawer" and all others see "Guesser" in the Player Info panel. Verify all players see the drawer's name.
 
-- [ ] T004 [P] [US1] Add `word?: string` field to `RoomSnapshot` in `frontend/src/services/api.ts` (optional — may be absent for guessers)
-- [ ] T005 [US1] Show role indicator and drawer identity on `GamePage` in `frontend/src/pages/GamePage.tsx` — Player Info card displays "Role: Drawer" or "Role: Guesser" and "Drawer: <name>"
-- [ ] T006 [US1] Add auto-polling (2s interval) to `GamePage` in `frontend/src/pages/GamePage.tsx` — mount `pollRoom` on mount, clear on unmount (same pattern as `LobbyPage`)
+- [X] T004 [P] [US1] Add `word?: string` field to `RoomSnapshot` in `frontend/src/services/api.ts` (optional — may be absent for guessers)
+- [X] T005 [US1] Show role indicator and drawer identity on `GamePage` in `frontend/src/pages/GamePage.tsx` — Player Info card displays "Role: Drawer" or "Role: Guesser" and "Drawer: <name>"
+- [X] T006 [US1] Add auto-polling (2s interval) to `GamePage` in `frontend/src/pages/GamePage.tsx` — mount `pollRoom` on mount, clear on unmount (same pattern as `LobbyPage`)
 
 **Checkpoint**: At this point, User Story 1 is complete. Roles are displayed correctly. The game page polls for updates.
 
@@ -63,8 +63,8 @@ No setup tasks needed — the repository is already initialized from the 001 imp
 
 **Independent Test**: Start a game. As the host (drawer), see the word displayed as a banner above the canvas. As a guesser, see "Drawer is drawing..." placeholder instead of the word.
 
-- [ ] T007 [P] [US2] Show secret word banner above canvas on `GamePage` in `frontend/src/pages/GamePage.tsx` — render the word only when `participant.role === "drawer"` and `room.word` is present
-- [ ] T008 [US2] Show "Drawer is drawing..." placeholder on `GamePage` in `frontend/src/pages/GamePage.tsx` — render in the canvas area for guessers (when `participant.role === "guesser"`)
+- [X] T007 [P] [US2] Show secret word banner above canvas on `GamePage` in `frontend/src/pages/GamePage.tsx` — render the word only when `participant.role === "drawer"` and `room.word` is present
+- [X] T008 [US2] Show "Drawer is drawing..." placeholder on `GamePage` in `frontend/src/pages/GamePage.tsx` — render in the canvas area for guessers (when `participant.role === "guesser"`)
 
 **Checkpoint**: At this point, User Story 2 is complete. Word visibility is correctly gated by role.
 
@@ -78,8 +78,8 @@ No setup tasks needed — the repository is already initialized from the 001 imp
 
 > **Note**: Most of US3 (lobby → playing transition, join rejection) was already implemented in 001. This phase covers remaining game-page state awareness.
 
-- [ ] T009 [P] [US3] Display room status on `GamePage` in `frontend/src/pages/GamePage.tsx` — show status indicator based on `room.status` (e.g., "Game in Progress" for `"playing"`, "Round Over" for `"finished"`)
-- [ ] T010 [US3] Handle `"finished"` state on `GamePage` in `frontend/src/pages/GamePage.tsx` — show "Drawer disconnected" message when status is `"finished"` due to drawer disconnect
+- [X] T009 [P] [US3] Display room status on `GamePage` in `frontend/src/pages/GamePage.tsx` — show status indicator based on `room.status` (e.g., "Game in Progress" for `"playing"`, "Round Over" for `"finished"`)
+- [X] T010 [US3] Handle `"finished"` state on `GamePage` in `frontend/src/pages/GamePage.tsx` — show "Drawer disconnected" message when status is `"finished"` due to drawer disconnect
 
 **Checkpoint**: At this point, all three user stories are independently functional.
 
@@ -89,10 +89,10 @@ No setup tasks needed — the repository is already initialized from the 001 imp
 
 **Purpose**: Handle drawer disconnect gracefully — transition to `"finished"` and notify remaining players.
 
-- [ ] T011 [P] Add `POST /rooms/:code/leave` endpoint in `backend/src/api/rooms.ts` and `leaveRoom` service function in `backend/src/services/roomStore.ts` — remove the participant from the room; if the leaving participant is the drawer and the room status is `"playing"`, set status to `"finished"`; if room becomes empty, delete it
-- [ ] T012 Add Zod schema for leave request in `backend/src/api/schemas.ts` — validate `participantId` in request body
-- [ ] T013 Wire "Exit Game" button on `GamePage` in `frontend/src/pages/GamePage.tsx` to call leave endpoint — navigate to start page after leaving; add `leaveRoom` method to store
-- [ ] T014 [P] Add `leaveRoom` action to `RoomStore` in `frontend/src/state/roomStore.ts` — call `api.leaveRoom` and clear store state
+- [X] T011 [P] Add `POST /rooms/:code/leave` endpoint in `backend/src/api/rooms.ts` and `leaveRoom` service function in `backend/src/services/roomStore.ts` — remove the participant from the room; if the leaving participant is the drawer and the room status is `"playing"`, set status to `"finished"`; if room becomes empty, delete it
+- [X] T012 Add Zod schema for leave request in `backend/src/api/schemas.ts` — validate `participantId` in request body
+- [X] T013 Wire "Exit Game" button on `GamePage` in `frontend/src/pages/GamePage.tsx` to call leave endpoint — navigate to start page after leaving; add `leaveRoom` method to store
+- [X] T014 [P] Add `leaveRoom` action to `RoomStore` in `frontend/src/state/roomStore.ts` — call `api.leaveRoom` and clear store state
 
 ---
 
@@ -100,8 +100,8 @@ No setup tasks needed — the repository is already initialized from the 001 imp
 
 **Purpose**: Final build validation
 
-- [ ] T015 Run backend build — `cd backend && npm run build`
-- [ ] T016 Run frontend build — `cd frontend && npm run build`
+- [X] T015 Run backend build — `cd backend && npm run build`
+- [X] T016 Run frontend build — `cd frontend && npm run build`
 
 ---
 

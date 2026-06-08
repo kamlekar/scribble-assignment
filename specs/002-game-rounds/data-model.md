@@ -41,16 +41,19 @@
 
 ### RoomSnapshot (role-aware filtering)
 
-| Field | Type | Visibility |
-|-------|------|------------|
-| `code` | `string` | All |
-| `status` | `RoomStatus` | All |
-| `participants` | `ParticipantSnapshot[]` | All |
-| `hostId` | `string` | All |
-| `word` | `string` | **Drawer only**. Omitted for guessers. |
+| Field | Type | Visibility | Notes |
+|-------|------|------------|-------|
+| `code` | `string` | All | |
+| `status` | `RoomStatus` | All | |
+| `participants` | `ParticipantSnapshot[]` | All | |
+| `hostId` | `string` | All | |
+| `word` | `string` | **Drawer only**. Omitted for guessers. | Not populated in lobby — only set on game start |
+| `availableWords` | `string[]` | All | Only present in POST /rooms/:code/start response; omitted from GET /rooms/:code |
+| `roles` | `ParticipantRole[]` | All | Only present in POST /rooms/:code/start response; omitted from GET /rooms/:code |
 
 **Changes from 001**:
 - `word` is now conditionally included based on `viewerParticipantId`: included if viewer is the drawer, omitted otherwise
+- `availableWords` and `roles` are included only in the start-game response (POST), not in the state-polling response (GET)
 
 ### ParticipantRole (unchanged from existing)
 
