@@ -45,6 +45,24 @@ async function request<T>(path: string, init?: RequestInit) {
   return (await response.json()) as T;
 }
 
+export interface Point {
+  x: number;
+  y: number;
+}
+
+export interface Stroke {
+  id: string;
+  points: Point[];
+  colour: string;
+  width: 2 | 4 | 8;
+  createdAt: string;
+}
+
+export interface CanvasState {
+  strokes: Stroke[];
+  roundNumber: number;
+}
+
 export const api = {
   createRoom(playerName: string) {
     return request<RoomSessionResponse>("/rooms", {
@@ -73,5 +91,20 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ participantId })
     });
+  },
+  addStroke(code: string, participantId: string, stroke: Stroke) {
+    return request<{ canvasState: CanvasState }>(`/api/rooms/${encodeURIComponent(code)}/canvas/strokes`, {
+      method: "POST",
+      body: JSON.stringify({ participantId, stroke })
+    });
+  },
+  clearCanvas(code: string, participantId: string) {
+    return request<{ canvasState: CanvasState }>(`/api/rooms/${encodeURIComponent(code)}/canvas/clear`, {
+      method: "POST",
+      body: JSON.stringify({ participantId })
+    });
+  },
+  fetchCanvas(code: string) {
+    return request<{ canvasState: CanvasState | null }>(`/api/rooms/${encodeURIComponent(code)}/canvas`);
   }
 };

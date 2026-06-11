@@ -1,10 +1,12 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "../components/Card";
+import { Canvas } from "../components/Canvas";
 import { GuessForm } from "../components/GuessForm";
 import { ResultPanel } from "../components/ResultPanel";
 import { RoomCodeBadge } from "../components/RoomCodeBadge";
 import { Scoreboard } from "../components/Scoreboard";
+import { api, type Stroke } from "../services/api";
 import { useRoomState, useRoomStore } from "../state/roomStore";
 
 export function GamePage() {
@@ -12,6 +14,10 @@ export function GamePage() {
   const roomStore = useRoomStore();
   const { room, participantId } = useRoomState();
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const canvasPollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const redirectOnMount = useRef(true);
+  const [canvasStrokes, setCanvasStrokes] = useState<Stroke[]>([]);
+  const [canvasError, setCanvasError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!room) {
@@ -21,9 +27,11 @@ export function GamePage() {
 
     if (room.status === "lobby") {
       navigate("/lobby", { replace: true });
-    } else if (room.status === "finished") {
+    } else if (room.status === "finished" && redirectOnMount.current) {
       navigate("/", { replace: true });
     }
+
+    redirectOnMount.current = false;
   }, [navigate, room]);
 
   useEffect(() => {
@@ -43,6 +51,36 @@ export function GamePage() {
       roomStore.clearPolling();
     };
   }, [roomStore, room?.code]);
+
+  useEffect(() => {
+    if (!room || room.status !== "playing") {
+      return;
+    }
+
+    const code = room.code;
+
+    async function pollCanvas() {
+      try {
+        const result = await api.fetchCanvas(code);
+        if (result.canvasState) {
+          setCanvasStrokes(result.canvasState.strokes);
+        }
+        setCanvasError(null);
+      } catch {
+        setCanvasError("Connection issue...");
+      }
+    }
+
+    pollCanvas();
+    canvasPollingRef.current = setInterval(pollCanvas, 2000);
+
+    return () => {
+      if (canvasPollingRef.current) {
+        clearInterval(canvasPollingRef.current);
+        canvasPollingRef.current = null;
+      }
+    };
+  }, [room?.code, room?.status]);
 
   if (!room) {
     return null;
@@ -91,13 +129,30 @@ export function GamePage() {
             </Card>
           ) : null}
 
-          {!isDrawer ? (
-            <Card title="Canvas">
-              <div className="canvas-placeholder" style={{ minHeight: '500px', backgroundColor: '#ffffff', border: '1px solid #e5e7eb' }}>
-                Drawer is drawing...
-              </div>
-            </Card>
-          ) : null}
+          <Card title="Canvas">
+            <Canvas
+              readOnly={!isDrawer}
+              strokes={canvasStrokes}
+              onStrokeComplete={async (stroke) => {
+                try {
+                  await api.addStroke(room.code, participantId!, stroke);
+                } catch {
+                  setCanvasError("Connection issue...");
+                }
+              }}
+              onClear={async () => {
+                try {
+                  setCanvasStrokes([]);
+                  await api.clearCanvas(room.code, participantId!);
+                } catch {
+                  setCanvasError("Connection issue...");
+                }
+              }}
+            />
+            {canvasError ? (
+              <p style={{ marginTop: "8px", color: "#b45309", fontSize: "0.875rem" }}>{canvasError}</p>
+            ) : null}
+          </Card>
         </div>
 
         <aside className="game-page__sidebar game-page__sidebar--right">

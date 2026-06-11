@@ -51,9 +51,8 @@ No foundational tasks needed.
 
 ### Implementation for User Story 1
 
-- [ ] T001 [P] [US1] Add status-change detection in LobbyPage polling at `frontend/src/pages/LobbyPage.tsx` — in the existing interval `useEffect` that calls `roomStore.pollRoom()`, add a check after each render where `room` is present: if `room.status === "playing"`, call `navigate("/game", { replace: true })`; if `room.status === "finished"`, call `navigate("/", { replace: true })`; if poll fails, show a non-blocking error indicator (e.g., "Connection issue...") that auto-clears on next successful poll
-- [ ] T002 [P] [US1] Add GamePage status validation on mount at `frontend/src/pages/GamePage.tsx` — add a `useEffect` keyed on `[navigate, room]` that checks: if `!room` or `room.status === "finished"` (room already ended before navigation), navigate to `/`; if `room.status === "lobby"`, navigate to `/lobby`; if `room.status === "playing"`, render the game UI normally (role display already works via existing code)
-- [ ] T003 [US1] Verify both builds pass — run `cd backend && npm run build && cd ../frontend && npm run build`
+- [ ] T001 [P] [US1] Add poll error state tracking to roomStore at `frontend/src/state/roomStore.ts` — add `pollError: string | null` to `RoomState`; set `null` on successful poll and `"Connection issue..."` on poll failure; clear on `leaveRoom()`
+- [ ] T002 [US1] Add status-change redirect and poll error indicator to LobbyPage at `frontend/src/pages/LobbyPage.tsx` — add `useEffect` that redirects to `/game` on `status === "playing"`, to `/` on `status === "finished"` or missing room; destructure `pollError` from `useRoomState()` and display in error line
 
 **Checkpoint**: MVP complete — two-window test passes (both host and participant redirected to game page within 3 seconds).
 
@@ -61,28 +60,27 @@ No foundational tasks needed.
 
 ## Phase 4: User Story 2 — Game Page State for Latecomers (Priority: P2)
 
-**Goal**: A participant who refreshes their lobby page, returns after navigating away, or who is on the game page when the game ends correctly transitions to the appropriate view.
+**Goal**: A participant who refreshes their lobby page, returns after navigating away, or is on the game page when the game ends correctly transitions to the appropriate view.
 
-**Independent Test**: Open a room as host in window A. Join as participant in window B. Start game from window A. Navigate back to `/lobby` in window B — verify redirect to `/game`. Hard-refresh window B's lobby page — verify redirect to `/game`. End the game — verify window B shows "The round has ended" message.
+**Independent Test**: Open a room as host in window A. Join as participant in window B. Start game from window A. Navigate back to `/lobby` in window B — verify redirect to `/game`. Hard-refresh window B's lobby page — verify redirect to `/game`. End the game — verify window B shows "The round has ended" message without redirect.
 
 ### Implementation for User Story 2
 
-- [ ] T004 [US2] Add LobbyPage mount-time status check at `frontend/src/pages/LobbyPage.tsx` — in the existing mount `useEffect` that checks `if (!room) navigate("/")`, also check if `room.status === "playing"` and navigate to `/game`, or if `room.status === "finished"` and navigate to `/`; this runs before the polling interval is set up, handling returning participants who navigate back to `/lobby` during an active game
-- [ ] T005 [US2] Add GamePage poll-based transition detection at `frontend/src/pages/GamePage.tsx` — in the existing polling `useEffect`, after each poll cycle check if `room.status` transitioned to `"finished"` and show "The round has ended" message via `useState` flag instead of the active game UI; if status transitioned to `"lobby"`, navigate to `/lobby`
-- [ ] T006 [US2] Verify both builds pass — run `cd backend && npm run build && cd ../frontend && npm run build`
+- [ ] T003 [US2] Add mount-time status validation to GamePage at `frontend/src/pages/GamePage.tsx` — add `useEffect` that validates room status on mount; redirect to `/` if `!room` or `status === "finished"` (late nav to ended game), redirect to `/lobby` if `status === "lobby"`; use `useRef` to ensure finished redirect only fires on mount, not on poll-triggered transitions during active play
+- [ ] T004 [US2] Add poll-based transition detection to GamePage at `frontend/src/pages/GamePage.tsx` — track previous status via `useRef` in polling `useEffect`; when `"playing"` → `"finished"` transition detected, display "The round has ended" message (existing JSX) without redirecting; when status transitions to `"lobby"`, redirect to `/lobby`
 
-**Checkpoint**: Latecomer scenarios verified — participants navigating back to lobby or refreshing during an active game are redirected correctly; game-end transition shows end message.
+**Checkpoint**: Latecomer scenarios verified — participants navigating back to lobby or refreshing during an active game are redirected correctly; game-end transition shows end message without redirect.
 
 ---
 
 ## Phase 5: Polish & Edge Cases
 
-**Purpose**: Handle remaining edge cases and run full validation.
+**Purpose**: Cross-cutting verification and edge case handling.
 
-- [ ] T007 [P] Verify missing-session redirect at `frontend/src/pages/LobbyPage.tsx` and `frontend/src/pages/GamePage.tsx` — confirm the existing `if (!room) navigate("/")` guards redirect users to the join page when the session is missing or expired (per FR-006); no code change expected
-- [ ] T008 [P] Verify "Game already in progress" error at `frontend/src/pages/JoinRoomPage.tsx` — confirm the existing catch block surfaces the 400 error from `POST /rooms/:code/join` when the room status is `"playing"` (per FR-007); no code change expected
-- [ ] T009 Run full manual validation per `specs/005-fix-game-view/quickstart.md` — execute all 5 validation scenarios and confirm each passes (requires two browser windows)
-- [ ] T010 Final build verification — run `cd backend && npm run build && cd ../frontend && npm run build`
+- [ ] T005 [P] Verify missing-session redirect guards in `frontend/src/pages/LobbyPage.tsx` and `frontend/src/pages/GamePage.tsx` — confirm the existing `if (!room) navigate("/")` guards redirect users to the join page when the session is missing or expired (per FR-006); no code change expected
+- [ ] T006 [P] Verify "Game already in progress" error in `frontend/src/pages/JoinRoomPage.tsx` — confirm the existing catch block surfaces the 400 error from `POST /rooms/:code/join` when the room status is `"playing"` (per FR-007); no code change expected
+- [ ] T007 Run full manual validation per `specs/005-fix-game-view/quickstart.md` — execute all 5 validation scenarios with two browser windows and confirm each passes
+- [ ] T008 Run final build verification — `cd backend && npm run build && cd ../frontend && npm run build`
 
 ---
 
@@ -93,13 +91,13 @@ No foundational tasks needed.
 - **Setup (Phase 1)**: Not applicable — skip
 - **Foundational (Phase 2)**: Not applicable — skip
 - **US1 (Phase 3)**: No dependencies — can start immediately
-- **US2 (Phase 4)**: T004 modifies the same file as T001 — apply after T001 to avoid merge conflicts. T005 (GamePage polling) is independent and can run in parallel with US1
+- **US2 (Phase 4)**: T003 must apply after T002 (different files, but US2 assumes redirect-to-game flow works); T004 modifies the same file (GamePage.tsx) as T003 — apply sequentially to avoid conflicts
 - **Polish (Phase 5)**: Depends on US1 and US2 completion
 
 ### User Story Dependencies
 
-- **User Story 1 (P1)**: No dependencies — can be implemented and tested independently
-- **User Story 2 (P2)**: T004 depends on T001 (same file LobbyPage.tsx), but the stories are functionally independent
+- **User Story 1 (P1)**: No dependencies — independently implementable and testable
+- **User Story 2 (P2)**: Functionally independent from US1 but applies to the same components; recommended to implement after US1 to build on the established redirect logic
 
 ### Within Each Phase
 
@@ -109,10 +107,10 @@ No foundational tasks needed.
 
 ### Parallel Opportunities
 
-- T001 (LobbyPage polling) and T002 (GamePage mount check) can run in parallel — different files, no dependencies
-- T004 must follow T001 — same file (LobbyPage.tsx), sequential to avoid conflicts
-- T005 can run in parallel with T004 — different files (GamePage.tsx vs LobbyPage.tsx)
-- T007 and T008 can run in parallel — verification-only, different files
+- T001 (roomStore.ts) and T002 (LobbyPage.tsx) can run in parallel — different files, no dependencies
+- T003 (GamePage.tsx) can run in parallel with T002 — different files
+- T005 and T006 can run in parallel — verification-only, different files
+- T007 and T008 must run after all other tasks
 - All [P]-marked tasks within a phase can run simultaneously
 
 ---
@@ -121,8 +119,8 @@ No foundational tasks needed.
 
 ```bash
 # Launch T001 and T002 together (different files):
-Task: "Add status-change detection in LobbyPage polling at frontend/src/pages/LobbyPage.tsx"
-Task: "Add GamePage status validation on mount at frontend/src/pages/GamePage.tsx"
+Task: "Add poll error state tracking to roomStore at frontend/src/state/roomStore.ts"
+Task: "Add status-change redirect and poll error indicator to LobbyPage at frontend/src/pages/LobbyPage.tsx"
 ```
 
 ---
@@ -131,7 +129,7 @@ Task: "Add GamePage status validation on mount at frontend/src/pages/GamePage.ts
 
 ### MVP First (User Story 1 Only)
 
-1. Complete Phase 3: User Story 1 (T001, T002, T003)
+1. Complete Phase 3: User Story 1 (T001, T002)
 2. **STOP and VALIDATE**: Run two-browser manual test per quickstart.md Scenario 1
 3. Deliver — core bug fix is complete
 
@@ -146,8 +144,9 @@ Task: "Add GamePage status validation on mount at frontend/src/pages/GamePage.ts
 - No backend changes needed — the API already returns `status: "playing"` in room snapshots
 - No new state management methods needed — existing `pollRoom()` + `useSyncExternalStore` provides reactive room state
 - No new dependencies needed — all changes use existing React Router `useNavigate` and React hooks
-- LobbyPage.tsx is modified by both T001 (US1) and T004 (US2) — apply sequentially to avoid conflicts
-- GamePage.tsx is modified by both T002 (US1) and T005 (US2) — handle finished state consistently; T005 builds on T002's foundation
+- LobbyPage.tsx is modified by T002 (US1) — one sequential change
+- GamePage.tsx is modified by T003 and T004 (US2) — apply sequentially to avoid conflicts; T004 builds on T003's mount validation
+- The finished-state redirect in GamePage must distinguish mount-time (redirect) from poll-time (stay + show message) — use `useRef` to track first mount vs subsequent poll transitions
 - Each phase should be independently verifiable via manual testing per quickstart.md
 - Build (`npm run build`) must pass on both backend and frontend before phase completion
 - Per constitution Principle V: commits must be granular and traceable to the spec

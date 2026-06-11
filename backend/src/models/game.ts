@@ -1,3 +1,5 @@
+import type { CanvasState } from "./canvas.js";
+
 export type ParticipantRole = "drawer" | "guesser";
 export type RoomStatus = "lobby" | "playing" | "finished";
 
@@ -22,6 +24,7 @@ export interface Room {
   status: RoomStatus;
   participants: Participant[];
   word?: string;
+  canvasState?: CanvasState | null;
   createdAt: string;
   updatedAt: string;
 }
