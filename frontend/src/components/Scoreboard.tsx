@@ -8,7 +8,7 @@ interface ScoreboardProps {
 
 export function Scoreboard({ scores, participants }: ScoreboardProps) {
   const entries = participants
-    .map((p) => ({ name: p.name, score: scores[p.id] ?? 0 }))
+    .map((p) => ({ id: p.id, name: p.name, score: scores[p.id] ?? 0 }))
     .sort((a, b) => b.score - a.score);
 
   if (entries.length === 0) {
@@ -23,7 +23,7 @@ export function Scoreboard({ scores, participants }: ScoreboardProps) {
     <Card title="Scoreboard">
       {entries.map((entry, i) => (
         <div
-          key={entry.name}
+          key={entry.id}
           className="placeholder-row"
           style={{
             fontWeight: i === 0 && entry.score > 0 ? 700 : 400,
