@@ -42,8 +42,8 @@ You are working on a monolithic repository for a multiplayer drawing game ("Scri
 -   When creating or editing files, ensure consistency with the existing directory structure detailed above.
 
 <!-- SPECKIT START -->
-For additional context, read the implementation plan at `specs/005-fix-game-view/plan.md`,
-the data model at `specs/005-fix-game-view/data-model.md`,
-the research notes at `specs/005-fix-game-view/research.md`,
-and the API contracts at `specs/005-fix-game-view/contracts/api.md`.
+For additional context, read the implementation plan at `specs/003-drawing-canvas/plan.md`,
+the data model at `specs/003-drawing-canvas/data-model.md`,
+the research notes at `specs/003-drawing-canvas/research.md`,
+and the API contracts at `specs/003-drawing-canvas/contracts/api.md`.
 <!-- SPECKIT END -->
