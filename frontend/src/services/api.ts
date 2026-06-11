@@ -8,6 +8,22 @@ export interface Participant {
   role: ParticipantRole | null;
 }
 
+export interface Guess {
+  id: string;
+  participantId: string;
+  text: string;
+  isCorrect: boolean;
+  createdAt: string;
+}
+
+export interface RoundResult {
+  secretWord: string;
+  guessHistory: Guess[];
+  scores: Record<string, number>;
+  winnerId: string | null;
+  endedAt: string;
+}
+
 export interface RoomSnapshot {
   code: string;
   status: "lobby" | "playing" | "finished";
@@ -16,6 +32,9 @@ export interface RoomSnapshot {
   word?: string;
   availableWords: string[];
   roles: ParticipantRole[];
+  guesses: Guess[];
+  scores: Record<string, number>;
+  roundResult: RoundResult | null;
 }
 
 export interface RoomSessionResponse {
@@ -106,5 +125,17 @@ export const api = {
   },
   fetchCanvas(code: string) {
     return request<{ canvasState: CanvasState | null }>(`/api/rooms/${encodeURIComponent(code)}/canvas`);
+  },
+  submitGuess(code: string, participantId: string, text: string) {
+    return request<{ room: RoomSnapshot }>(`/rooms/${encodeURIComponent(code)}/guess`, {
+      method: "POST",
+      body: JSON.stringify({ participantId, text })
+    });
+  },
+  restartRoom(code: string, participantId: string) {
+    return request<{ room: RoomSnapshot }>(`/rooms/${encodeURIComponent(code)}/restart`, {
+      method: "POST",
+      body: JSON.stringify({ participantId })
+    });
   }
 };

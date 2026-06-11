@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Card } from "../components/Card";
 import { Canvas } from "../components/Canvas";
 import { GuessForm } from "../components/GuessForm";
+import { GuessHistory } from "../components/GuessHistory";
 import { ResultPanel } from "../components/ResultPanel";
 import { RoomCodeBadge } from "../components/RoomCodeBadge";
 import { Scoreboard } from "../components/Scoreboard";
@@ -27,8 +28,6 @@ export function GamePage() {
 
     if (room.status === "lobby") {
       navigate("/lobby", { replace: true });
-    } else if (room.status === "finished" && redirectOnMount.current) {
-      navigate("/", { replace: true });
     }
 
     redirectOnMount.current = false;
@@ -91,15 +90,56 @@ export function GamePage() {
   const isDrawer = viewer?.role === "drawer";
   const isFinished = room.status === "finished";
 
+  const isHost = viewer?.id === room.hostId;
+  const guesses = room.guesses ?? [];
+  const scores = room.scores ?? {};
+
   if (isFinished) {
+    const roundResult = room.roundResult;
+    const winnerName = roundResult?.winnerId
+      ? room.participants.find((p) => p.id === roundResult.winnerId)?.name ?? "Unknown"
+      : null;
+
     return (
       <section className="panel placeholder-page">
-        <Card title="Game Over">
-          <p>The round has ended</p>
+        <Card title="Round Over">
+          <div style={{ marginBottom: "16px" }}>
+            <p style={{ fontWeight: 600, marginBottom: "4px" }}>The word was:</p>
+            <p style={{ fontSize: "1.5rem", fontWeight: 700, color: "#7c3aed" }}>
+              {roundResult?.secretWord ?? "???"}
+            </p>
+          </div>
+
+          {winnerName ? (
+            <p style={{ fontWeight: 600, marginBottom: "12px", color: "#16a34a" }}>
+              Winner: {winnerName}
+            </p>
+          ) : (
+            <p style={{ marginBottom: "12px", color: "#6b7280" }}>No one guessed correctly this round.</p>
+          )}
+
+          <Scoreboard scores={scores} participants={room.participants} />
+
+          <div style={{ marginTop: "16px" }}>
+            <p style={{ fontWeight: 600, marginBottom: "8px" }}>Guess History</p>
+            <GuessHistory guesses={guesses} participants={room.participants} />
+          </div>
         </Card>
+
         <div className="button-row">
+          {isHost ? (
+            <button
+              className="button button--primary"
+              onClick={async () => {
+                await roomStore.restartRoom();
+                navigate("/lobby");
+              }}
+            >
+              Back to Lobby
+            </button>
+          ) : null}
           <button className="button button--secondary" onClick={async () => { await roomStore.leaveRoom(); navigate("/"); }}>
-            Back to Home
+            Leave Game
           </button>
         </div>
       </section>
@@ -118,8 +158,8 @@ export function GamePage() {
 
       <div className="game-page__layout">
         <aside className="game-page__sidebar game-page__sidebar--left">
-          <Scoreboard />
-          <ResultPanel />
+          <Scoreboard scores={scores} participants={room.participants} />
+          <ResultPanel guesses={guesses} participants={room.participants} />
         </aside>
 
         <div className="game-page__main">
@@ -182,7 +222,7 @@ export function GamePage() {
           </Card>
 
           <Card title="Your Guess">
-            <GuessForm />
+            <GuessForm disabled={isDrawer} />
           </Card>
         </aside>
       </div>

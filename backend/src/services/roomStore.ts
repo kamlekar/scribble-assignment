@@ -57,6 +57,9 @@ export function createRoom(playerName?: string) {
     hostId: participant.id,
     status: "lobby",
     participants: [participant],
+    guesses: [],
+    scores: {},
+    roundResult: null,
     createdAt: now(),
     updatedAt: now()
   };
@@ -125,6 +128,9 @@ export function startGame(code: string, participantId: string) {
 
   room.status = "playing";
   room.word = STARTER_WORDS[Math.floor(Math.random() * STARTER_WORDS.length)];
+  room.guesses = [];
+  room.scores = Object.fromEntries(room.participants.map((p) => [p.id, 0]));
+  room.roundResult = null;
   for (const participant of room.participants) {
     participant.role = participant.id === room.hostId ? "drawer" : "guesser";
   }
@@ -183,12 +189,49 @@ export function toRoomSnapshot(room: Room, viewerParticipantId?: string): RoomSn
       role: isPlayingOrFinished ? (participant.role ?? null) : null
     })) satisfies ParticipantSnapshot[],
     availableWords: listWords(),
-    roles: [...STARTER_ROLES]
+    roles: [...STARTER_ROLES],
+    guesses: room.guesses ?? [],
+    scores: room.scores ?? {},
+    roundResult: room.roundResult ?? null
   };
 
-  if (isViewerDrawer && room.word) {
+  if (room.status === "finished" && room.word) {
+    snapshot.word = room.word;
+  } else if (isViewerDrawer && room.word) {
     snapshot.word = room.word;
   }
 
   return snapshot;
+}
+
+export function resetRoomToLobby(code: string, participantId: string) {
+  const room = rooms.get(code);
+
+  if (!room) {
+    throw new HttpError(404, "Room not found");
+  }
+
+  if (room.hostId !== participantId) {
+    throw new HttpError(403, "Only the host can restart the game");
+  }
+
+  if (room.status !== "finished") {
+    throw new HttpError(400, "Game is not finished");
+  }
+
+  room.status = "lobby";
+  room.word = undefined;
+  room.guesses = [];
+  room.scores = {};
+  room.roundResult = null;
+  room.canvasState = null;
+
+  for (const p of room.participants) {
+    p.role = undefined;
+  }
+
+  room.updatedAt = now();
+  rooms.set(room.code, room);
+
+  return cloneRoom(room);
 }

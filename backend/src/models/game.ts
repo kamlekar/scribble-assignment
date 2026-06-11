@@ -18,6 +18,22 @@ export interface ParticipantSnapshot {
   role: ParticipantRole | null;
 }
 
+export interface Guess {
+  id: string;
+  participantId: string;
+  text: string;
+  isCorrect: boolean;
+  createdAt: string;
+}
+
+export interface RoundResult {
+  secretWord: string;
+  guessHistory: Guess[];
+  scores: Record<string, number>;
+  winnerId: string | null;
+  endedAt: string;
+}
+
 export interface Room {
   code: string;
   hostId: string;
@@ -25,6 +41,9 @@ export interface Room {
   participants: Participant[];
   word?: string;
   canvasState?: CanvasState | null;
+  guesses: Guess[];
+  scores: Record<string, number>;
+  roundResult: RoundResult | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -37,6 +56,9 @@ export interface RoomSnapshot {
   word?: string;
   availableWords: string[];
   roles: ParticipantRole[];
+  guesses: Guess[];
+  scores: Record<string, number>;
+  roundResult: RoundResult | null;
 }
 
 export interface RoomSessionResponse {

@@ -6,9 +6,12 @@ import {
   leaveRoomSchema,
   roomCodeParamsSchema,
   roomViewerQuerySchema,
-  startGameSchema
+  startGameSchema,
+  submitGuessSchema,
+  restartGameSchema
 } from "./schemas.js";
-import { createRoom, getRoom, joinRoom, leaveRoom, startGame, toRoomSnapshot } from "../services/roomStore.js";
+import { createRoom, getRoom, joinRoom, leaveRoom, startGame, toRoomSnapshot, resetRoomToLobby } from "../services/roomStore.js";
+import { submitGuess } from "../services/roundService.js";
 
 export function createRoomsRouter() {
   const router = Router();
@@ -72,6 +75,32 @@ export function createRoomsRouter() {
       const { code } = roomCodeParamsSchema.parse(request.params);
       const { participantId } = startGameSchema.parse(request.body);
       const room = startGame(code.toUpperCase(), participantId);
+
+      response.json({
+        room: toRoomSnapshot(room, participantId)
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.post("/:code/guess", (request, response, next) => {
+    try {
+      const { code } = roomCodeParamsSchema.parse(request.params);
+      const { participantId, text } = submitGuessSchema.parse(request.body);
+      const snapshot = submitGuess(code.toUpperCase(), participantId, text);
+
+      response.json({ room: snapshot });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.post("/:code/restart", (request, response, next) => {
+    try {
+      const { code } = roomCodeParamsSchema.parse(request.params);
+      const { participantId } = restartGameSchema.parse(request.body);
+      const room = resetRoomToLobby(code.toUpperCase(), participantId);
 
       response.json({
         room: toRoomSnapshot(room, participantId)

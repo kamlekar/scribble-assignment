@@ -154,6 +154,27 @@ class RoomStore {
       this.listeners.forEach((listener) => listener());
     });
   }
+
+  async submitGuess(text: string) {
+    if (!this.state.room || !this.state.participantId) {
+      return;
+    }
+
+    const response = await api.submitGuess(this.state.room.code, this.state.participantId, text);
+    this.setRoomSnapshot(response.room);
+    return response;
+  }
+
+  async restartRoom() {
+    if (!this.state.room || !this.state.participantId) {
+      return;
+    }
+
+    await this.withLoading(async () => {
+      const response = await api.restartRoom(this.state.room!.code, this.state.participantId!);
+      this.setRoomSnapshot(response.room);
+    });
+  }
 }
 
 const RoomStoreContext = createContext<RoomStore | null>(null);

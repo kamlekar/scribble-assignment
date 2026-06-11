@@ -8,6 +8,16 @@
 
 **Input**: User description: "Implement guess submission with validation, guess history syncing, scoring, result display, and restart flow"
 
+## Clarifications
+
+### Session 2026-06-12
+
+- Q: How should simultaneous correct guesses be handled? → A: Only the first correct guesser receives points; the round ends immediately upon first correct guess
+- Q: How should the frontend discover state changes? → A: Single polling endpoint returns full room state (guess history, room status, scores, secret word when revealed)
+- Q: What should the UI show during guess submission and on network failures? → A: Loading spinner on submit button while request is in flight; inline error message near the input on failure; guess input stays intact for retry
+- Q: How does the restart flow work? → A: Host clicks "Back to Lobby" → POST to restart endpoint → server resets state → all players (including host) discover lobby state via next poll
+- Q: How are correct vs incorrect guesses visually distinguished? → A: Green checkmark icon next to correct guesses, red X icon next to incorrect guesses
+
 ## User Scenarios & Testing
 
 ### User Story 1 - Guesser Submits a Guess (Priority: P1)
@@ -95,8 +105,8 @@ After the result screen, players can return to the lobby to play again. Players 
 ### Edge Cases
 
 - What happens if a guesser submits the same guess multiple times? Duplicate guesses from the same player should be allowed (they might guess the same wrong word), but only the first correct guess counts
-- What happens if multiple guessers guess correctly at the same time? Each correct guesser should receive points independently
-- What happens if the drawer stops drawing and no one guesses? The round ends when a correct guess is made. If no correct guess is made, the round persists until the host ends it (consistent with host-only control)
+- What happens if multiple guessers guess correctly at the same time? The first correct guess processed by the server ends the round immediately; only that guesser receives points. If two correct guesses arrive in the same request cycle, the server orders them by processing timestamp
+- What happens if the drawer stops drawing and no one guesses? The round ends when a correct guess is made. If no correct guess is made, the round persists indefinitely (host-forced round end is out of scope for v1)
 - What happens if a player disconnects during the result screen and reconnects? They should see the result state when they rejoin
 - What happens if some players want to leave while others want to restart? The restart should be host-initiated (consistent with lobby management)
 
@@ -109,19 +119,21 @@ After the result screen, players can return to the lobby to play again. Players 
 - **FR-003**: System MUST compare guesses to the secret word case-insensitively
 - **FR-004**: System MUST add every valid guess to a shared guess history visible to all participants
 - **FR-005**: System MUST mark guesses as correct or incorrect in the guess history
-- **FR-006**: System MUST visually distinguish correct guesses from incorrect guesses in the history
+- **FR-006**: System MUST visually distinguish correct guesses from incorrect guesses in the history using a green checkmark icon for correct and a red X icon for incorrect
 - **FR-007**: System MUST award points to a guesser when they submit the correct guess
 - **FR-008**: System MUST NOT award points for incorrect guesses
 - **FR-009**: System MUST display scores for all participants on the scoreboard
 - **FR-010**: System MUST transition room to a finished/result state when the round ends
 - **FR-011**: System MUST reveal the secret word to all participants on the result screen
 - **FR-012**: System MUST display the full guess history on the result screen
-- **FR-013**: System MUST provide a way for players to return to the lobby after the result screen
+- **FR-013**: System MUST provide a restart endpoint (POST /api/rooms/:code/restart) for the host to return all players to the lobby after the result screen; all players discover the lobby transition via polling
 - **FR-014**: System MUST preserve the participant list when returning to the lobby after a round
 - **FR-015**: System MUST clear round-specific state (drawing, guesses, scores) when returning to the lobby
-- **FR-016**: System MUST provide a polling endpoint for guessers to fetch the updated guess history
+- **FR-016**: System MUST provide a single polling endpoint (GET /api/rooms/:code) that returns the full room state including guess history, room status, scores, and the secret word (when the round has ended)
 
 - **FR-017**: System MUST set a maximum guess length of 100 characters to prevent excessively long submissions
+- **FR-018**: System MUST show a loading spinner on the submit button while a guess submission request is in flight
+- **FR-019**: System MUST display an inline error message near the guess input on submission failure and keep the guess text intact for retry
 
 ### Key Entities
 

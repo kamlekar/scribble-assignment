@@ -29,6 +29,15 @@ export const roomViewerQuerySchema = z.object({
   participantId: z.string().optional()
 });
 
+export const submitGuessSchema = z.object({
+  participantId: z.string(),
+  text: z.string().trim().min(1, "Guess cannot be empty").max(100, "Guess must be 100 characters or less")
+});
+
+export const restartGameSchema = z.object({
+  participantId: z.string()
+});
+
 export class HttpError extends Error {
   statusCode: number;
 
