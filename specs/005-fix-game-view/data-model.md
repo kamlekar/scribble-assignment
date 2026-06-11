@@ -60,10 +60,13 @@ lobby ──[host starts game]──► playing ──[drawer disconnects]──
 | LobbyPage | `"lobby"` | Stay, display lobby UI |
 | LobbyPage | `"playing"` | `navigate("/game")` |
 | LobbyPage | `"finished"` | `navigate("/")` |
-| GamePage | `"playing"` | Stay, display game UI |
-| GamePage | `"lobby"` | `navigate("/lobby")` |
-| GamePage | `"finished"` | Stay, display "game ended" message |
+| GamePage (navigating to) | `"finished"` | `navigate("/")` — redirect to join page (room already ended) |
+| GamePage (transitioning) | `"lobby"` | `navigate("/lobby")` |
+| GamePage (transitioning) | `"playing"` | Stay, display game UI |
+| GamePage (transitioning) | `"finished"` | Stay, display "game ended" message |
 | JoinRoomPage | `"playing"` (join rejected) | Show "Game already in progress" error |
+
+**Note on GamePage finished state**: Two distinct scenarios exist. When navigating **to** `/game` and the room is already finished, redirect to join page. When already on the game page and status transitions **from** `"playing"` to `"finished"`, stay and display the end message.
 
 ## Validation Rules
 
@@ -72,5 +75,6 @@ lobby ──[host starts game]──► playing ──[drawer disconnects]──
 - **FR-003**: `participantId` and `room.code` are already persisted in `RoomStore` state — no additional persistence needed
 - **FR-004**: Role is already returned in snapshots when `status === "playing"` — GamePage already displays it
 - **FR-005**: LobbyPage on mount must check `room.status` — if `"playing"`, redirect immediately (handles refresh)
-- **FR-006**: GamePage on mount must check `room.status` — if `"lobby"`, redirect to lobby; if `"finished"`, display end message
-- **FR-008**: GamePage when `status === "finished"` must show game-ended message
+- **FR-006**: GamePage on mount must check `room.status` — if `"lobby"`, redirect to lobby; if `"finished"` (room already ended before navigation), redirect to join page
+- **FR-008**: GamePage when status transitions to `"finished"` while already on the page must display the game-ended message (no redirect)
+- Poll failure during game start transition: LobbyPage shows non-blocking error indicator on UI while continuing to poll; next successful poll detects status change

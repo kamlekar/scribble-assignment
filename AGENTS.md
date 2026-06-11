@@ -44,5 +44,6 @@ You are working on a monolithic repository for a multiplayer drawing game ("Scri
 <!-- SPECKIT START -->
 For additional context, read the implementation plan at `specs/005-fix-game-view/plan.md`,
 the data model at `specs/005-fix-game-view/data-model.md`,
+the research notes at `specs/005-fix-game-view/research.md`,
 and the API contracts at `specs/005-fix-game-view/contracts/api.md`.
 <!-- SPECKIT END -->

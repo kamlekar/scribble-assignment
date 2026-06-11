@@ -35,8 +35,9 @@ In `frontend/src/pages/LobbyPage.tsx:50-57`, the `handleStartGame` function call
 |----------|--------|-----------|
 | Detection mechanism | Polling-based redirect in LobbyPage | Uses existing 2s interval; no new protocol needed |
 | GamePage guards | Status check on mount + on poll | Handles refresh, direct navigation, late join |
-| Late join flow | Redirect to `/game` on successful join of playing room | Skipping lobby for "playing" rooms |
-| Game ended flow | Redirect to `/` (join page) with message | Simple; no end-game screen yet |
+| Late join flow | Returning participants with existing session skip lobby via mount-time status check; new joiners rejected per FR-007 | No backend changes needed; consistent with existing join rejection |
+| Game ended flow | Navigating to /game when already finished → redirect to join page; transitioning to finished while on game page → stay and show "The round has ended" | Both behaviors needed for different scenarios |
+| Poll failure during transition | Non-blocking error indicator on lobby while silently retrying at 2s interval | Transient errors resolved by next poll cycle |
 | Missing session | Redirect to `/` | Already done; no change needed |
 
 ## Alternatives Considered

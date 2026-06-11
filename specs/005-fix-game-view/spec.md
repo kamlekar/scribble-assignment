@@ -8,6 +8,14 @@
 
 **Input**: User description: "when host starts the game, the participant isn't seeing the game view"
 
+## Clarifications
+
+### Session 2026-06-11
+
+- Q: US2 Scenario 1 says a participant on the join page with a valid room code should be redirected to the game page. Does this mean the join endpoint should allow playing rooms? → A: No. US2 Scenario 1 refers to already-joined participants (existing session) who navigated away and return. New joiners are still rejected per FR-007. The returning participant skips the lobby via LobbyPage mount-time status check.
+- Q: What should the UI do if the 2-second poll fails when the room transitions to "playing"? → A: Show a non-blocking error indicator on the lobby while continuing to poll silently. The 2s retry interval handles recovery.
+- Q: How should the GamePage handle "finished" state — redirect or show a message? → A: Two distinct behaviors needed: (1) navigating to /game when the room is already finished → redirect to join page; (2) being on /game during "playing" when status transitions to "finished" → stay and display "The round has ended" message.
+
 ## User Scenarios & Testing
 
 ### User Story 1 - All Players See Game View on Start (Priority: P1)
@@ -36,7 +44,7 @@ A participant who was on the join page or had their browser tab backgrounded dur
 
 **Acceptance Scenarios**:
 
-1. **Given** a participant is on the join page with a valid room code, **When** the room is already in "playing" status, **Then** the participant is redirected to the game page rather than the lobby
+1. **Given** a participant who already joined a room navigates back to the join page or home page, **When** the room is already in "playing" status, **Then** the participant is redirected to the game page rather than the lobby on next interaction
 2. **Given** a participant hard-refreshes their lobby page, **When** the room status is "playing", **Then** they are redirected to the game page instead of remaining on the lobby
 
 ---
@@ -46,6 +54,7 @@ A participant who was on the join page or had their browser tab backgrounded dur
 - What happens if the participant's lobby poll returns status "finished" (game already ended)? They should see a "Game has ended" message and be redirected to the join page
 - What happens if the participant's browser session does not contain their participant identity or room identifier? They should be redirected to the join page with an appropriate message
 - What happens if the participant navigates to the game page directly without going through the lobby? The game page should check the room status, and if the room is in "playing" state, display the game; otherwise redirect to join page
+- What happens if the lobby poll fails (network error) just as the game starts? The lobby should display a non-blocking error indicator (e.g., "Connection issue...") while continuing to poll at the normal 2s interval. The next successful poll will detect the status change and redirect
 
 ## Requirements
 
@@ -56,9 +65,9 @@ A participant who was on the join page or had their browser tab backgrounded dur
 - **FR-003**: System MUST preserve the participant's identity and room identifier across the lobby-to-game page transition so that navigating between pages does not require re-joining
 - **FR-004**: System MUST display each participant's role ("drawer" or "guesser") on the game page based on the room snapshot data
 - **FR-005**: System MUST redirect participants who hard-refresh or navigate to the lobby page while the game is in progress to the game page automatically
-- **FR-006**: System MUST redirect participants who navigate to the game page while the room is in "lobby" or "finished" state to the appropriate page (lobby or join page)
+- **FR-006**: System MUST redirect participants who navigate to the game page while the room is in "lobby" state to the lobby page, or in "finished" state to the join page
 - **FR-007**: System MUST reject join attempts for rooms in "playing" state with a "Game already in progress" error
-- **FR-008**: System MUST display an appropriate message on the game page when the room status is "finished" ("The round has ended")
+- **FR-008**: System MUST display an appropriate message on the game page when the room status transitions to "finished" while the participant is already on the game page ("The round has ended")
 
 ### Key Entities
 

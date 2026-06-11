@@ -64,11 +64,11 @@ specs/005-fix-game-view/
 frontend/
 ├── src/
 │   ├── pages/
-│   │   ├── LobbyPage.tsx    # MAJOR: add status-change redirect on poll + mount-time check
-│   │   ├── GamePage.tsx     # MAJOR: add status validation + redirects + finished display
+│   │   ├── LobbyPage.tsx    # MAJOR: add status-change redirect on poll + mount-time check + poll failure error indicator
+│   │   ├── GamePage.tsx     # MAJOR: add status validation (playing→stay, lobby→redirect, finished→redirect on nav / stay on transition)
 │   │   └── JoinRoomPage.tsx # No change needed (already handles "game in progress")
 │   └── state/
-│       └── roomStore.ts     # No change needed (existing pollRoom + useSyncExternalStore sufficient)
+│       └── roomStore.ts     # MINOR: expose poll error state for lobby error indicator (or handle in component)
 
 backend/                      # No changes needed — API already returns status: "playing"
 ```
@@ -78,3 +78,11 @@ backend/                      # No changes needed — API already returns status
 ## Complexity Tracking
 
 No constitutional violations. All changes are additive and justified by the feature spec.
+
+### Spec Clarifications Integrated (2026-06-11)
+
+| Clarification | Impact on Plan |
+|---------------|----------------|
+| US2 late join flow applies only to returning participants with existing sessions | No plan change — LobbyPage mount-time check already covers this |
+| Poll failure during game start shows non-blocking error on lobby | Added to LobbyPage task description in project structure |
+| Finished state on game page: two distinct behaviors (redirect on nav, stay on transition) | GamePage needs mount-time redirect for already-finished rooms + transition detection for in-page status changes |

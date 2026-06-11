@@ -8,7 +8,7 @@ import { useRoomState, useRoomStore } from "../state/roomStore";
 export function LobbyPage() {
   const navigate = useNavigate();
   const roomStore = useRoomStore();
-  const { room, participantId, error, isLoading, isPolling } = useRoomState();
+  const { room, participantId, error, pollError, isLoading, isPolling } = useRoomState();
   const [refreshError, setRefreshError] = useState<string | null>(null);
   const [startError, setStartError] = useState<string | null>(null);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -103,7 +103,7 @@ export function LobbyPage() {
           <p className="status-line" style={{ backgroundColor: showPollingIndicator ? '#fef3c7' : '#e0e7ff', color: showPollingIndicator ? '#b45309' : '#3730a3' }}>
             {isLoading ? "Refreshing players..." : showPollingIndicator ? "Checking for new players..." : "Ready to play"}
           </p>
-          <p style={{ marginTop: '8px' }}>{error ?? refreshError ?? startError ?? "Waiting for the host to start the game."}</p>
+          <p style={{ marginTop: '8px' }}>{error ?? refreshError ?? startError ?? pollError ?? "Waiting for the host to start the game."}</p>
         </Card>
       </div>
 

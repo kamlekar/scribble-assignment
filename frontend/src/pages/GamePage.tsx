@@ -16,16 +16,13 @@ export function GamePage() {
   useEffect(() => {
     if (!room) {
       navigate("/", { replace: true });
-    }
-  }, [navigate, room]);
-
-  useEffect(() => {
-    if (!room) {
       return;
     }
 
     if (room.status === "lobby") {
       navigate("/lobby", { replace: true });
+    } else if (room.status === "finished") {
+      navigate("/", { replace: true });
     }
   }, [navigate, room]);
 

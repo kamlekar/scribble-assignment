@@ -13,6 +13,7 @@ export interface RoomState {
   room: RoomSnapshot | null;
   participantId: string | null;
   error: string | null;
+  pollError: string | null;
   isLoading: boolean;
   isPolling: boolean;
 }
@@ -24,6 +25,7 @@ class RoomStore {
     room: null,
     participantId: null,
     error: null,
+    pollError: null,
     isLoading: false,
     isPolling: false
   };
@@ -111,8 +113,9 @@ class RoomStore {
     try {
       const response = await api.fetchRoom(this.state.room.code, this.state.participantId ?? undefined);
       this.setRoomSnapshot(response.room);
+      this.setState({ pollError: null });
     } catch {
-      this.setState({ error: null });
+      this.setState({ pollError: "Connection issue..." });
     } finally {
       this.setState({ isPolling: false });
     }
@@ -144,6 +147,7 @@ class RoomStore {
         room: null,
         participantId: null,
         error: null,
+        pollError: null,
         isLoading: false,
         isPolling: false
       };
