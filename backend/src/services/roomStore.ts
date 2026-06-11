@@ -157,6 +157,13 @@ export function leaveRoom(code: string, participantId: string) {
 
   if (leavingParticipant.role === "drawer" && room.status === "playing") {
     room.status = "finished";
+    room.roundResult = {
+      secretWord: room.word ?? "",
+      guessHistory: [...(room.guesses ?? [])],
+      scores: { ...(room.scores ?? {}) },
+      winnerId: null,
+      endedAt: now()
+    };
   }
 
   room.participants.splice(index, 1);
@@ -165,6 +172,10 @@ export function leaveRoom(code: string, participantId: string) {
   if (room.participants.length === 0) {
     rooms.delete(code);
     return null;
+  }
+
+  if (leavingParticipant.id === room.hostId) {
+    room.hostId = room.participants[0].id;
   }
 
   rooms.set(room.code, room);

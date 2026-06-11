@@ -22,8 +22,8 @@ interface CanvasProps {
 function normalizePoint(canvas: HTMLCanvasElement, clientX: number, clientY: number): Point {
   const rect = canvas.getBoundingClientRect();
   return {
-    x: (clientX - rect.left) / rect.width,
-    y: (clientY - rect.top) / rect.height
+    x: Math.min(1, Math.max(0, (clientX - rect.left) / rect.width)),
+    y: Math.min(1, Math.max(0, (clientY - rect.top) / rect.height))
   };
 }
 

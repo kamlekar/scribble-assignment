@@ -131,14 +131,18 @@ export function GamePage() {
             <button
               className="button button--primary"
               onClick={async () => {
-                await roomStore.restartRoom();
-                navigate("/lobby");
+                try {
+                  await roomStore.restartRoom();
+                  navigate("/lobby");
+                } catch {
+                  // stay on page
+                }
               }}
             >
               Back to Lobby
             </button>
           ) : null}
-          <button className="button button--secondary" onClick={async () => { await roomStore.leaveRoom(); navigate("/"); }}>
+          <button className="button button--secondary" onClick={async () => { try { await roomStore.leaveRoom(); navigate("/"); } catch { /* stay */ } }}>
             Leave Game
           </button>
         </div>
@@ -175,16 +179,21 @@ export function GamePage() {
               strokes={canvasStrokes}
               onStrokeComplete={async (stroke) => {
                 try {
-                  await api.addStroke(room.code, participantId!, stroke);
+                  if (!participantId) return;
+                  setCanvasStrokes((prev) => [...prev, stroke]);
+                  await api.addStroke(room.code, participantId, stroke);
                 } catch {
                   setCanvasError("Connection issue...");
                 }
               }}
               onClear={async () => {
+                const previousStrokes = canvasStrokes;
                 try {
+                  if (!participantId) return;
                   setCanvasStrokes([]);
-                  await api.clearCanvas(room.code, participantId!);
+                  await api.clearCanvas(room.code, participantId);
                 } catch {
+                  setCanvasStrokes(previousStrokes);
                   setCanvasError("Connection issue...");
                 }
               }}
@@ -204,7 +213,7 @@ export function GamePage() {
               </div>
               <div>
                 <dt>Role</dt>
-                <dd>{viewer?.role === "drawer" ? "Drawer" : "Guesser"}</dd>
+                <dd>{viewer ? (viewer.role === "drawer" ? "Drawer" : "Guesser") : "Unknown"}</dd>
               </div>
               <div>
                 <dt>Drawer</dt>
@@ -228,7 +237,7 @@ export function GamePage() {
       </div>
 
       <div className="button-row">
-        <button className="button button--secondary" onClick={async () => { await roomStore.leaveRoom(); navigate("/"); }}>
+        <button className="button button--secondary" onClick={async () => { try { await roomStore.leaveRoom(); navigate("/"); } catch { /* stay */ } }}>
           Exit Game
         </button>
       </div>
