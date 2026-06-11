@@ -24,6 +24,16 @@ export function GamePage() {
       return;
     }
 
+    if (room.status === "lobby") {
+      navigate("/lobby", { replace: true });
+    }
+  }, [navigate, room]);
+
+  useEffect(() => {
+    if (!room) {
+      return;
+    }
+
     pollingRef.current = setInterval(() => {
       roomStore.pollRoom();
     }, 2000);
@@ -45,6 +55,21 @@ export function GamePage() {
   const drawer = room.participants.find((participant) => participant.role === "drawer") ?? null;
   const isDrawer = viewer?.role === "drawer";
   const isFinished = room.status === "finished";
+
+  if (isFinished) {
+    return (
+      <section className="panel placeholder-page">
+        <Card title="Game Over">
+          <p>The round has ended</p>
+        </Card>
+        <div className="button-row">
+          <button className="button button--secondary" onClick={async () => { await roomStore.leaveRoom(); navigate("/"); }}>
+            Back to Home
+          </button>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="panel game-page">
@@ -96,11 +121,9 @@ export function GamePage() {
               <div>
                 <dt>Status</dt>
                 <dd>
-                  {isFinished
-                    ? "Drawer disconnected"
-                    : room.status === "playing"
-                      ? "Game in Progress"
-                      : "Waiting"}
+                  {room.status === "playing"
+                    ? "Game in Progress"
+                    : "Waiting"}
                 </dd>
               </div>
             </dl>

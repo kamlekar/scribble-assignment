@@ -58,7 +58,7 @@ A participant who was on the join page or had their browser tab backgrounded dur
 - **FR-005**: System MUST redirect participants who hard-refresh or navigate to the lobby page while the game is in progress to the game page automatically
 - **FR-006**: System MUST redirect participants who navigate to the game page while the room is in "lobby" or "finished" state to the appropriate page (lobby or join page)
 - **FR-007**: System MUST reject join attempts for rooms in "playing" state with a "Game already in progress" error
-- **FR-008**: System MUST display an appropriate message on the game page when the room status is "finished" (e.g., "The round has ended")
+- **FR-008**: System MUST display an appropriate message on the game page when the room status is "finished" ("The round has ended")
 
 ### Key Entities
 
@@ -72,7 +72,7 @@ A participant who was on the join page or had their browser tab backgrounded dur
 ### Measurable Outcomes
 
 - **SC-001**: All participants see the game page within 3 seconds of the host clicking "Start Game" (bounded by the periodic status check cycle plus network latency)
-- **SC-002**: The game page correctly displays the participant's role (drawer or guesser) on first load — no flicker or placeholder state
+- **SC-002**: The game page correctly displays the participant's role (drawer or guesser) on first load — role (drawer/guesser) must be rendered from the room snapshot data on the first render cycle without relying on a second poll to populate the field
 - **SC-003**: 100% of participants who refresh their browser during a game are redirected back to the game page, not the lobby
 - **SC-004**: Players who attempt to join a room that has already started receive a clear rejection message and are not admitted
 
