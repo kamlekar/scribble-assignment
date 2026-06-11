@@ -8,6 +8,16 @@
 
 **Input**: User description: "Implement an interactive drawing canvas so the drawer can draw and guessers can see the drawing in real-time via polling"
 
+## Clarifications
+
+### Session 2026-06-11
+
+- Q: Canvas lifecycle across rounds → A: Per-round — canvas is automatically created when a round starts and cleared when a new round begins
+- Q: Stroke identity model → A: UUID — each stroke gets a unique UUID generated client-side by the drawer's client
+- Q: Stroke completion trigger → A: Mouse-up — a stroke is considered complete and ready for sync when the user lifts the mouse/touch
+- Q: Poll failure UX for drawing sync → A: Subtle non-blocking indicator — silently retry on failure, show a small "connection issue" indicator that auto-clears on next successful poll
+- Q: Drawing data retention → A: End-of-round — previous round's strokes are discarded immediately when a new round begins, keeping memory footprint minimal
+
 ## User Scenarios & Testing
 
 ### User Story 1 - Drawer Draws on Canvas (Priority: P1)
@@ -63,6 +73,7 @@ The drawer can clear the canvas to start over, which also clears it for all gues
 - What happens when the canvas is very small or very large? The canvas should maintain aspect ratio and scale appropriately
 - What happens if the browser window is resized? The canvas drawing should remain intact and visible
 - What happens if a guesser joins mid-round? They should see the current state of the drawing
+- What happens at round transition? The canvas is automatically cleared for all participants when a new round begins — no manual clear needed
 
 ## Requirements
 
@@ -73,20 +84,21 @@ The drawer can clear the canvas to start over, which also clears it for all gues
 - **FR-003**: System MUST provide at least 3 brush width options (thin, medium, thick)
 - **FR-004**: System MUST render the canvas as read-only for guessers (no drawing interaction)
 - **FR-005**: System MUST persist drawing strokes on the backend as the canonical drawing state
-- **FR-006**: System MUST sync completed strokes from drawer to all guessers within 2 seconds
+- **FR-006**: System MUST sync completed strokes (triggered on mouse-up) from drawer to all guessers within 2 seconds
 - **FR-007**: System MUST provide a clear canvas action available only to the drawer
 - **FR-008**: System MUST sync the cleared canvas state to all guessers within 2 seconds
 - **FR-009**: System MUST allow guessers joining mid-round to receive the full current drawing state
-- **FR-010**: System MUST store drawing data as individual strokes with colour and width metadata
+- **FR-010**: System MUST store drawing data as individual strokes with colour, width, and a client-generated UUID per stroke
+- **FR-013**: System MUST automatically clear the canvas for all participants when a new round begins — the drawer does not need to manually clear between rounds. Previous round's strokes MUST be discarded from memory immediately on round transition
 
-- **FR-011**: System MUST provide guessers with a polling mechanism to fetch the latest drawing state at regular intervals (2 seconds, matching the lobby polling cadence)
+- **FR-011**: System MUST provide guessers with a polling mechanism to fetch the latest drawing state at regular intervals (2 seconds, matching the lobby polling cadence). On poll failure, show a subtle non-blocking indicator that auto-clears on the next successful poll; do not interrupt the user experience
 
 - **FR-012**: System MUST provide the drawer with a clear canvas action only — no undo action is needed
 
 ### Key Entities
 
-- **Stroke**: Represents a single drawing stroke. Contains an ordered list of points (x, y coordinates), colour, brush width, and a timestamp.
-- **CanvasState**: Represents the complete drawing at a point in time. Contains all strokes drawn so far in the current round, ordered by creation time.
+- **Stroke**: Represents a single drawing stroke. Uniquely identified by a UUID generated client-side by the drawer. Contains an ordered list of points (x, y coordinates), colour, brush width, and a timestamp.
+- **CanvasState**: Represents the complete drawing at a point in time. Contains all strokes drawn so far in the **current round**, ordered by creation time. A new CanvasState is created at the start of each round; the previous round's canvas is discarded.
 - **DrawingAction**: An action performed on the canvas (add stroke, clear, undo). Used to communicate changes between drawer and server.
 
 ## Success Criteria
@@ -103,6 +115,7 @@ The drawer can clear the canvas to start over, which also clears it for all gues
 
 - Drawing data is stored as stroke metadata (vectors), not as bitmap images — this allows efficient incremental updates
 - A stroke is defined by discrete points sampled during mouse movement (not every pixel)
+- A stroke is considered complete when the user lifts the mouse button (mouse-up event); only completed strokes are synced to the server
 - The polling interval for drawing sync is separate from lobby polling and may be different
 - Touch input on mobile devices is out of scope for v1 (mouse input only)
 - Canvas size is fixed for all players to ensure consistent display
