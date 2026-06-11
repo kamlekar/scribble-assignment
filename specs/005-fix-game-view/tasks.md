@@ -73,7 +73,18 @@ No foundational tasks needed.
 
 ---
 
-## Phase 5: Polish & Edge Cases
+## Phase 5: Bug Fixes (Cross-Cutting)
+
+**Purpose**: Fix bugs identified during full-app testing (see `checklists/001-found-bugs.md`). These are independent of the game view transition feature but are grouped here for delivery.
+
+- [ ] T010 [P] Fix Scoreboard React key — change `key={entry.name}` to `key={entry.id}` in `frontend/src/components/Scoreboard.tsx:27`
+- [ ] T011 Fix hardcoded `roundNumber` — derive from actual round count in `backend/src/services/canvasService.ts:29-31`
+- [ ] T012 [P] Add missing `.form__error--inline` CSS class to stylesheet in `frontend/src/styles/app.css`
+- [ ] T013 [P] Remove unused `redirectOnMount` ref from `frontend/src/pages/GamePage.tsx:19`
+- [ ] T014 Fix optimistic stroke rollback — remove stroke from local state on API failure in `frontend/src/pages/GamePage.tsx:180-188`
+- [ ] T015 Add name deduplication check — reject duplicate participant names in `backend/src/services/roomStore.ts`
+
+## Phase 6: Polish & Edge Cases
 
 **Purpose**: Cross-cutting verification and edge case handling.
 

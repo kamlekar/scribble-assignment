@@ -86,3 +86,16 @@ No constitutional violations. All changes are additive and justified by the feat
 | US2 late join flow applies only to returning participants with existing sessions | No plan change — LobbyPage mount-time check already covers this |
 | Poll failure during game start shows non-blocking error on lobby | Added to LobbyPage task description in project structure |
 | Finished state on game page: two distinct behaviors (redirect on nav, stay on transition) | GamePage needs mount-time redirect for already-finished rooms + transition detection for in-page status changes |
+
+## Bug Fixes Incorporated
+
+Found bugs from full-app testing are tracked in `checklists/001-found-bugs.md`. The following fixes are included in this feature:
+
+| # | Area | Description | Status |
+|---|------|-------------|--------|
+| 1 | Frontend | Scoreboard uses `entry.name` as React key — fixed to use `participant.id` | ✅ Fixed |
+| 2 | Backend | Canvas `roundNumber` hardcoded to 1 — derive from actual round count | ☐ Open |
+| 3 | Frontend | Missing `.form__error--inline` CSS class — add to stylesheet | ☐ Open |
+| 4 | Frontend | Dead code: unused `redirectOnMount` ref in `GamePage.tsx` — remove | ☐ Open |
+| 5 | Frontend | Optimistic canvas stroke not rolled back on server error — remove stroke on failure | ☐ Open |
+| 6 | Backend | No participant name deduplication — reject or disambiguate duplicate names | ☐ Open |
