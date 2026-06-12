@@ -3,6 +3,17 @@ import type { Participant, ParticipantSnapshot, Room, RoomSnapshot } from "../mo
 import { STARTER_ROLES, STARTER_WORDS } from "../seed/starterData.js";
 import { HttpError } from "../api/schemas.js";
 
+function deterministicPick<T>(items: readonly T[], seed: string): T {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    const char = seed.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash |= 0;
+  }
+  const index = Math.abs(hash) % items.length;
+  return items[index];
+}
+
 const rooms = new Map<string, Room>();
 
 function now() {
@@ -127,7 +138,7 @@ export function startGame(code: string, participantId: string) {
   }
 
   room.status = "playing";
-  room.word = STARTER_WORDS[Math.floor(Math.random() * STARTER_WORDS.length)];
+  room.word = deterministicPick(STARTER_WORDS, room.code);
   room.guesses = [];
   room.scores = Object.fromEntries(room.participants.map((p) => [p.id, 0]));
   room.roundResult = null;
